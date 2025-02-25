@@ -1,0 +1,36 @@
+import db from "../config/db.js";
+
+const createTables = async () => {
+  try {
+    await db.query(`
+          CREATE TABLE categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    author_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+        `);
+
+    // await db.query(`
+    //         CREATE TABLE IF NOT EXISTS orders (
+    //             id INT AUTO_INCREMENT PRIMARY KEY,
+    //             user_id INT NOT NULL,
+    //             product_name VARCHAR(255) NOT NULL,
+    //             amount DECIMAL(10,2) NOT NULL,
+    //             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    //             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    //         );
+    //     `);
+
+    console.log("Tables created successfully!");
+    process.exit();
+  } catch (err) {
+    console.error(" Error creating tables:", err);
+    process.exit(1);
+  }
+};
+
+// Run the function
+createTables();

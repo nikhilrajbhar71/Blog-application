@@ -3,12 +3,19 @@ import db from "../config/db.js";
 const createTables = async () => {
   try {
     await db.query(`
-          CREATE TABLE categories (
+          CREATE TABLE posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL,
-    author_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    banner_image VARCHAR(255), -- Image URL
+    author_id INT ,
+    category_id INT ,
+    is_published BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,  -- New column to indicate soft deletion
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
         `);

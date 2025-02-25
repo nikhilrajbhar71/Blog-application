@@ -1,43 +1,32 @@
 import db from "../config/db.js";
 
-export const createPost = async () => {
+export const create = async (
+  title,
+  content,
+  banner_image,
+  author_id,
+  category_id,
+  is_published
+) => {
   const [result] = await db.query(
-    "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
-    [username, email, password, role]
+    "INSERT INTO posts (title, content, banner_image, author_id,category_id,is_published) VALUES (?, ?, ?, ?,?,?)",
+    [title, content, banner_image, author_id, category_id, is_published]
   );
 
-  const [newUser] = await db.query(
-    "SELECT id, name, email, role FROM users WHERE id = ?",
-    [result.insertId]
-  );
+  const [newUser] = await db.query("SELECT * FROM posts WHERE id = ?", [
+    result.insertId,
+  ]);
 
   return newUser[0];
 };
 
-export const getUsers = async () => {
-  const sql = "SELECT * FROM users";
-  const [rows] = await db.query(sql);
-  return rows;
-};
+export const update = async (id, status) => {
+  const [result] = await db.query(
+    "UPDATE posts SET is_published = ? WHERE id = ?",
+    [status, id]
+  );
 
-export const getUserById = async (id) => {
-  const sql = "SELECT * FROM users WHERE id = ?";
-  const [rows] = await db.query(sql, [id]);
-  return rows[0];
-};
-export const getUserByEmail = async (email) => {
-  const sql = "SELECT * FROM users WHERE email = ?";
-  const row = await db.query(sql, [email]);
+  const [post] = await db.query("SELECT * FROM posts WHERE id = ?", [id]);
 
-  return row;
-};
-
-export const updateUserAge = async (id, age) => {
-  const sql = "UPDATE users SET age = ? WHERE id = ?";
-  await db.query(sql, [age, id]);
-};
-
-export const deleteUser = async (id) => {
-  const sql = "DELETE FROM users WHERE id = ?";
-  await db.query(sql, [id]);
+  return post[0];
 };

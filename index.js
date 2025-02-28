@@ -13,4 +13,5 @@ app.use("/api/users", userRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/posts", postRoutes);
 
+
 app.listen(5000, () => console.log("Server running on port 5000"));

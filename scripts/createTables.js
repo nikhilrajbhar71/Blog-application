@@ -2,23 +2,21 @@ import db from "../config/db.js";
 
 const createTables = async () => {
   try {
-    await db.query(`
-          CREATE TABLE posts (
+    await db.query(`CREATE TABLE likes (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    banner_image VARCHAR(255), -- Image URL
-    author_id INT ,
-    category_id INT ,
-    is_published BOOLEAN DEFAULT FALSE,
-    is_deleted BOOLEAN DEFAULT FALSE,  -- New column to indicate soft deletion
+    post_id INT NULL,
+    comment_id INT NULL,
+    user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
-);
-
-        `);
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE (user_id, post_id, comment_id),
+    CHECK (
+        (post_id IS NOT NULL AND comment_id IS NULL) OR 
+        (comment_id IS NOT NULL AND post_id IS NULL)
+    )
+);  `);
 
     // await db.query(`
     //         CREATE TABLE IF NOT EXISTS orders (

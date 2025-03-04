@@ -65,3 +65,11 @@ export const isLiked = async (post_id, user_id) => {
 
   return likes.length > 0;
 };
+
+export const addComment = async(post_id,comment,user_id)=>{
+  const [result] = await db.query(
+    `INSERT INTO comments (post_id,comment,user_id) VALUES (?,?, ?)`,
+    [post_id, comment, user_id]
+  );
+  return result;
+}

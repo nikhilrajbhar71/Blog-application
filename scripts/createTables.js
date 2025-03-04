@@ -2,7 +2,7 @@ import db from "../config/db.js";
 
 const createTables = async () => {
   try {
-    await db.query(`CREATE TABLE likes (
+    await db.query(`CREATE TABLE IF NOT EXISTS likes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     post_id INT NULL,
     comment_id INT NULL,

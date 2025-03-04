@@ -1,19 +1,16 @@
 import { createUser, getUserByEmail } from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import responseHandler from "../utils/responseHandler.js";
 
-export const userRegister = async (req, res) => {
+export const userRegister = async (req, res, next) => {
   try {
     const { email, password, role, username } = req.body;
-
-    if (!email || !password || !role || !username) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
 
     const [userFound] = await getUserByEmail(email);
 
     if (userFound.length > 0) {
-      return res.status(409).json({ message: "Email already exists" });
+      return responseHandler(res, 409, "Email already exists");
     }
 
     const saltRounds = 10;
@@ -28,36 +25,31 @@ export const userRegister = async (req, res) => {
         expiresIn: "1h",
       }
     );
-    res.status(201).json({ message: "User created successfully", user, token });
+    return responseHandler(res, 201, "User created successfully", {
+      user,
+      token,
+    });
   } catch (error) {
-    console.error("Error registering user: ", error);
-
-    if (error.code === "ER_DUP_ENTRY") {
-      return res.status(409).json({ message: "Email already exists" });
-    }
-
-    res.status(500).json({ message: "Internal Server Error" });
+    next(error);
   }
 };
 
-export const userLogin = async (req, res) => {
+export const userLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
     const [userFound] = await getUserByEmail(email);
 
     if (userFound.length == 0) {
-      return res
-        .status(409)
-        .json({ message: "User doesn't exist, please sign up." });
+      return responseHandler(
+        response,
+        404,
+        "User doesn't exist, please sign up."
+      );
     }
     console.log("user found " + JSON.stringify(userFound));
-    const user = await bcrypt.compare(password, userFound[0].password);
-    if (!user) {
-      return res.status(401).json({ message: "Incorrect password" });
+    const isVerified = await bcrypt.compare(password, userFound[0].password);
+    if (!isVerified) {
+      return responseHandler(res, 401, "Incorrect password");
     }
 
     const token = jwt.sign(
@@ -72,13 +64,8 @@ export const userLogin = async (req, res) => {
       }
     );
 
-    res.status(200).json({
-      message: "User logged in  successfully",
-      token,
-    });
+    return responseHandler(res, 200, "User logged in  successfully", { token });
   } catch (error) {
-    console.error("Error registering user: ", error);
-
-    res.status(500).json({ message: "Internal Server Error" });
+    next(error);
   }
 };

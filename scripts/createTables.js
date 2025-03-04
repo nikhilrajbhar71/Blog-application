@@ -30,6 +30,7 @@ const createTables = async () => {
     //     `);
 
     console.log("Tables created successfully!");
+    db.end();
     process.exit();
   } catch (err) {
     console.error(" Error creating tables:", err);

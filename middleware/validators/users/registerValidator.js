@@ -8,7 +8,7 @@ export const validateUserRegister = [
   body("username").trim().notEmpty().withMessage("Username is required"),
   body("role")
     .isIn(["viewer", "author"])
-    .withMessage("Role must be either 'user' or 'admin'"),
+    .withMessage("Role must be either 'viewer' or 'author'"),
 
   (req, res, next) => {
     const errors = validationResult(req);

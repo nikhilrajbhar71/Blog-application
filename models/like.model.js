@@ -1,8 +1,8 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
-import User from "../models/user.model.js";
-import Post from "../models/post.model.js";
-import Comment from "../models/comment.model.js";
+import User from "./user.model.js";
+import Post from "./post.model.js";
+import Comment from "./comment.model.js";
 
 const Like = sequelize.define(
   "Like",
@@ -12,6 +12,18 @@ const Like = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    postId: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // NULL if it's a comment like
+    },
+    commentId: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // NULL if it's a post like
+    },
   },
   {
     timestamps: true,
@@ -19,10 +31,13 @@ const Like = sequelize.define(
 );
 
 
-User.belongsToMany(Post, { through: Like, foreignKey: "user_id" });
-Post.belongsToMany(User, { through: Like, foreignKey: "post_id" });
+User.hasMany(Like, { foreignKey: "userId", onDelete: "CASCADE" });
+Like.belongsTo(User, { foreignKey: "userId" });
 
-User.belongsToMany(Comment, { through: Like, foreignKey: "user_id" });
-Comment.belongsToMany(User, { through: Like, foreignKey: "comment_id" });
+Post.hasMany(Like, { foreignKey: "postId", onDelete: "CASCADE" });
+Like.belongsTo(Post, { foreignKey: "postId" });
+
+Comment.hasMany(Like, { foreignKey: "commentId", onDelete: "CASCADE" });
+Like.belongsTo(Comment, { foreignKey: "commentId" });
 
 export default Like;

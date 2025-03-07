@@ -45,14 +45,11 @@ export const userLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email } });
-    await emailSender(email, "Login", "You've been logged in");
     if (!user) {
-      return responseHandler(
-        response,
-        404,
-        "User doesn't exist, please sign up."
-      );
+      return responseHandler(res, 404, "User doesn't exist, please sign up.");
     }
+
+    // await emailSender(email, "Login", "You've been logged in");
 
     const isVerified = await bcrypt.compare(password, user.password);
     if (!isVerified) {

@@ -22,7 +22,6 @@ export const createPost = async (req, res) => {
       category_id,
       is_publish,
     });
-    console.log("post " + JSON.stringify(result));
     if (result) {
       return responseHandler(res, 200, "Post created successfully", {
         post: result,
@@ -50,6 +49,12 @@ export const updateStatus = async (req, res, next) => {
     if (!post) {
       throw new AppError(404, "Post not found");
     }
+    if (post.author_id != req.user.id) {
+      throw new AppError(401, "Unauthorized to update post");
+    }
+    console.log("post" + JSON.stringify(post));
+
+    console.log("req use " + JSON.stringify(req.user));
 
     const updatedPost = await Post.update(
       { isPublished: is_published },

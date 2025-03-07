@@ -1,10 +1,13 @@
-import { create, getAll } from "../models/category.model.js";
+import Category from "../models/category.model.js";
 import AppError from "../utils/AppError.js";
 import responseHandler from "../utils/responseHandler.js";
-export const createCategory = async (req, res,next) => {
+export const createCategory = async (req, res, next) => {
   try {
     const { name } = req.body;
-    const result = await create(name, req.user.id);
+    const result = await Category.create({
+      name,
+      author_id: req.user.id,
+    });
     if (result) {
       return responseHandler(res, 201, "Category created successfully", {
         result,
@@ -19,7 +22,11 @@ export const createCategory = async (req, res,next) => {
 
 export const getAllCategories = async (req, res, next) => {
   try {
-    const result = await getAll(req.user.id);
+    const result = await Category.findAll({
+      where: {
+        author_id: req.user.id,
+      },
+    });
 
     if (result) {
       return responseHandler(res, 200, "All categories fetched successfully", {

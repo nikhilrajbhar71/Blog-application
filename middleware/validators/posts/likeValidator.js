@@ -11,7 +11,7 @@ function handleValidationErrors(req, res, next) {
 
 // Validation rules for liking/unliking a post
 export const validateLikePost = [
-  param("id")
+  param("post_id")
     .isInt({ gt: 0 })
     .withMessage("Post ID must be a valid positive integer"),
 

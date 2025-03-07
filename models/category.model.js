@@ -1,22 +1,28 @@
-import db from "../config/db.js";
-export const create = async (name, author_id) => {
-  const [result] = await db.query(
-    `INSERT INTO categories (name, author_id) VALUES  (?, ?)`,
-    [name, author_id]
-  );
+import { DataTypes } from "sequelize";
+import { sequelize } from "../config/db.js";
+import User from "../models/user.model.js";
 
-  const [rows] = await db.query(
-    `SELECT id, name, author_id FROM categories WHERE id = ?`,
-    [result.insertId]
-  );
+const Category = sequelize.define(
+  "Category",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      unique: true,
+    },
+  },
+  {
+    timestamps: true,
+    updatedAt: false,
+  }
+);
 
-  return rows[0];
-};
+Category.belongsTo(User, { foreignKey: "author_id", onDelete: "CASCADE" });
+User.hasMany(Category, { foreignKey: "author_id" });
 
-export const getAll = async (author_id) => {
-  const categories = await db.query(
-    "SELECT * FROM categories where author_id =?",
-    [author_id]
-  );
-  return categories[0];
-};
+export default Category;

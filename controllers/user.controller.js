@@ -1,22 +1,29 @@
-import { createUser, getUserByEmail } from "../models/userModel.js";
+import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import responseHandler from "../utils/responseHandler.js";
+import emailSender from "../utils/emailSender.js";
 
 export const userRegister = async (req, res, next) => {
   try {
-    const { email, password, role, username } = req.body;
+    const { email, password, role, name } = req.body;
 
-    const [userFound] = await getUserByEmail(email);
-
-    if (userFound.length > 0) {
+    const existingUser = await User.findOne({ where: { email } });
+    console.log("here");
+    console.log("existingUser", JSON.stringify(existingUser));
+    if (existingUser) {
       return responseHandler(res, 409, "Email already exists");
     }
 
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const user = await createUser(username, email, hashedPassword, role);
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+    });
 
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
@@ -37,26 +44,26 @@ export const userRegister = async (req, res, next) => {
 export const userLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const [userFound] = await getUserByEmail(email);
-
-    if (userFound.length == 0) {
+    const user = await User.findOne({ where: { email } });
+    await emailSender(email, "Login", "You've been logged in");
+    if (!user) {
       return responseHandler(
         response,
         404,
         "User doesn't exist, please sign up."
       );
     }
-    console.log("user found " + JSON.stringify(userFound));
-    const isVerified = await bcrypt.compare(password, userFound[0].password);
+
+    const isVerified = await bcrypt.compare(password, user.password);
     if (!isVerified) {
       return responseHandler(res, 401, "Incorrect password");
     }
 
     const token = jwt.sign(
       {
-        userId: userFound[0].id,
-        email: userFound[0].email,
-        role: userFound[0].role,
+        userId: user.id,
+        email: user.email,
+        role: user.role,
       },
       process.env.JWT_SECRET,
       {

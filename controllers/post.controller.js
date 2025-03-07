@@ -1,13 +1,5 @@
-import {
-  addComment,
-  create,
-  getAll,
-  getPostById,
-  isLiked,
-  like,
-  unlike,
-  update,
-} from "../models/post.model.js";
+import Like from "../models/like.model.js";
+import Post from "../models/post.model.js";
 import AppError from "../utils/AppError.js";
 import responseHandler from "../utils/responseHandler.js";
 export const createPost = async (req, res) => {
@@ -22,14 +14,15 @@ export const createPost = async (req, res) => {
     } else {
       is_publish = false;
     }
-    const result = await create(
+    const result = await Post.create({
       title,
       content,
       banner_image,
       author_id,
       category_id,
-      is_publish
-    );
+      is_publish,
+    });
+    console.log("post " + JSON.stringify(result));
     if (result) {
       return responseHandler(res, 200, "Post created successfully", {
         post: result,
@@ -53,8 +46,15 @@ export const updateStatus = async (req, res, next) => {
     } else {
       status = false;
     }
+    const post = await Post.findByPk(id);
+    if (!post) {
+      throw new AppError(404, "Post not found");
+    }
 
-    const updatedPost = await update(id, status);
+    const updatedPost = await Post.update(
+      { isPublished: is_published },
+      { where: { id } }
+    );
 
     if (!updatedPost) {
       throw new AppError(404, "Post not found");
@@ -70,7 +70,7 @@ export const updateStatus = async (req, res, next) => {
 
 export const getAllPost = async (req, res) => {
   try {
-    const posts = await getAll();
+    const posts = await Post.findAll({});
     if (!posts) {
       return responseHandler(res, 404, "No posts found");
     }
@@ -83,9 +83,9 @@ export const getAllPost = async (req, res) => {
 export const getPost = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const post = await getPostById(id);
+    const post = await Post.findByPk(id);
     console.log(JSON.stringify(post));
-    if (post.length === 0) {
+    if (!post) {
       throw new AppError(404, "post not found");
     }
     return responseHandler(res, 200, "post fetched successfully", { post });
@@ -96,22 +96,40 @@ export const getPost = async (req, res, next) => {
 
 export const likePost = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { post_id } = req.params;
     const user_id = req.user.id;
 
-    const post = await getPostById(id);
+    const post = await Post.findOne({
+      where: { id: post_id },
+    });
+    console.log("post " + JSON.stringify(post));
     if (!post) {
       throw new AppError(404, "post not found");
     }
-    console.log(`user id is ${user_id} and post id ${id}`);
-    if (await isLiked(id, user_id)) {
-      const unlikedPost = unlike(id, user_id);
 
+    const PostLikedAlready = await Like.findOne({
+      where: { post_id, user_id },
+    });
+
+    if (PostLikedAlready) {
+      const deletedLike = await Like.destroy({
+        where: {
+          user_id: user_id,
+          post_id: post_id,
+        },
+      });
+      if (!deletedLike) {
+        throw new AppError(500, "Failed to unlike post");
+      }
       return responseHandler(res, 200, "Post unliked successfully", {
-        post: unlikedPost,
+        post: post,
       });
     }
-    const likedPost = await like(id, user_id);
+
+    const likedPost = await Like.create({
+      post_id,
+      user_id,
+    });
     if (!likedPost) {
       return responseHandler(res, 404, "post not found");
     }

@@ -34,7 +34,7 @@ router.put(
 );
 router.get("/getallposts", authenticateUser, getAllPost);
 router.get("/getpost/:id", authenticateUser, validateGetPost, getPost);
-router.post("/like/:id", authenticateUser,validateLikePost, likePost);
-router.post("/comment/:id", authenticateUser,validateComment, comment);
+router.post("/like/:post_id", authenticateUser, validateLikePost, likePost);
+router.post("/comment/:id", authenticateUser, validateComment, comment);
 
 export default router;

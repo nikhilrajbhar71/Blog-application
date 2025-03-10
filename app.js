@@ -4,7 +4,7 @@ import categoryRoutes from "./routes/category.routes.js";
 import postRoutes from "./routes/post.routes.js";
 import dotenv from "dotenv";
 import errorMiddleware from "./middleware/errorMiddleware.js";
-
+import subscriptionRoutes from "./routes/subscription.routes.js"
 dotenv.config();
 
 const app = express();
@@ -14,6 +14,7 @@ app.get("/", (req, res) => res.send("Hello World!"));
 app.use("/api/users", userRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
 
 app.use(errorMiddleware);
 

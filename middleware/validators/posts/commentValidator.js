@@ -15,7 +15,7 @@ export const validateComment = [
 
   body("comment")
     .trim()
-    .isLength({ min: 3 })
+    .isLength({ min: 1 })
     .withMessage("Comment must be at least 3 characters long"),
 
   handleValidationErrors,

@@ -1,3 +1,4 @@
+import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
 import Post from "../models/post.model.js";
 import AppError from "../utils/AppError.js";
@@ -152,12 +153,17 @@ export const comment = async (req, res) => {
     const post_id = req.params.id;
     const user_id = req.user.id;
     const { comment } = req.body;
-    const addcomment = await addComment(post_id, comment, user_id);
-    if (!addcomment) {
+    const newcomment = await Comment.create({
+      post_id,
+      comment,
+      user_id,
+    });
+    console.log("new comment " + JSON.stringify(newcomment));
+    if (!newcomment) {
       return responseHandler(res, 404, "Failed to comment");
     }
     return responseHandler(res, 200, "Comment added successfully", {
-      comment: addcomment,
+      comment: newcomment,
     });
   } catch (error) {
     next(error);

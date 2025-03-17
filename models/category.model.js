@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
-import User from "../models/user.model.js";
 
 const Category = sequelize.define(
   "Category",
@@ -22,7 +21,6 @@ const Category = sequelize.define(
   }
 );
 
-Category.belongsTo(User, { foreignKey: "author_id", onDelete: "CASCADE" });
-User.hasMany(Category, { foreignKey: "author_id" });
+
 
 export default Category;

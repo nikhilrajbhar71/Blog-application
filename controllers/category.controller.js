@@ -4,9 +4,13 @@ import responseHandler from "../utils/responseHandler.js";
 export const createCategory = async (req, res, next) => {
   try {
     const { name } = req.body;
+    const existingCategory = await Category.findOne({ name });
+    if (existingCategory) {
+      throw new AppError(409, "Category already exists");
+    }
     const result = await Category.create({
       name,
-      author_id: req.user.id,
+      // author_id: req.user.id,
     });
     if (result) {
       return responseHandler(res, 201, "Category created successfully", {
@@ -24,7 +28,7 @@ export const getAllCategories = async (req, res, next) => {
   try {
     const result = await Category.findAll({
       where: {
-        author_id: req.user.id,
+        
       },
     });
 

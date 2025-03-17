@@ -1,4 +1,4 @@
-import { param, validationResult } from "express-validator";
+import { query, validationResult } from "express-validator";
 
 function handleValidationErrors(req, res, next) {
   const errors = validationResult(req);
@@ -9,10 +9,13 @@ function handleValidationErrors(req, res, next) {
 }
 
 export const validateLikePost = [
-  param("post_id")
+  query("id")
     .isInt({ gt: 0 })
     .withMessage("Post ID must be a valid positive integer"),
-
+  query("type")
+   .trim()
+   .isLength({min : 1})
+   .withMessage("type must be at least 1 characters long"),
   // Middleware to handle validation errors
   handleValidationErrors,
 ];

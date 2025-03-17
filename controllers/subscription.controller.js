@@ -1,4 +1,3 @@
-import { where } from "sequelize";
 import Subscription from "../models/subscription.model.js";
 import AppError from "../utils/AppError.js";
 import responseHandler from "../utils/responseHandler.js";

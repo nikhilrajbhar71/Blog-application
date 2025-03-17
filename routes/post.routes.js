@@ -32,9 +32,9 @@ router.put(
   validateUpdateStatus,
   updateStatus
 );
-router.get("/getallposts", authenticateUser, getAllPost);
-router.get("/getpost/:id", authenticateUser, validateGetPost, getPost);
-router.post("/like/:post_id", authenticateUser, validateLikePost, likePost);
+router.get("/getallposts", getAllPost);
+router.get("/getpost/:id", validateGetPost, getPost);
+router.post("/like", authenticateUser, validateLikePost, likePost);
 router.post("/comment/:id", authenticateUser, validateComment, comment);
 
 export default router;

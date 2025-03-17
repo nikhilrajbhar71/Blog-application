@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
-import  User  from "../models/user.model.js";
+import User from "../models/user.model.js";
+import AppError from "../utils/AppError.js";
 
 const authenticateUser = async (req, res, next) => {
   try {
@@ -14,7 +15,9 @@ const authenticateUser = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+    if (!decoded) {
+      throw new AppError(403, "Forbidden - Invalid Token");
+    }
     const user = await User.findByPk(decoded.userId);
 
     if (!user) {

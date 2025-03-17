@@ -18,11 +18,11 @@ const Like = sequelize.define(
     },
     postId: {
       type: DataTypes.INTEGER,
-      allowNull: true, // NULL if it's a comment like
+      allowNull: true,
     },
     commentId: {
       type: DataTypes.INTEGER,
-      allowNull: true, // NULL if it's a post like
+      allowNull: true, 
     },
   },
   {

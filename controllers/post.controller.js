@@ -1,8 +1,13 @@
+import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
 import Post from "../models/post.model.js";
+import Subscription from "../models/subscription.model.js";
+import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
+import emailSender from "../utils/emailSender.js";
 import responseHandler from "../utils/responseHandler.js";
-export const createPost = async (req, res) => {
+
+export const createPost = async (req, res, next) => {
   try {
     const { title, content, category_id, is_published } = req.body;
     const author_id = req.user.id;
@@ -23,6 +28,30 @@ export const createPost = async (req, res) => {
       is_publish,
     });
     if (result) {
+      const subscribers = await User.findOne({
+        where: { id: req.user.id },
+        include: [
+          {
+            model: User,
+            as: "Subscribers",
+            attributes: ["id", "name", "email"],
+            through: { attributes: [] },
+          },
+        ],
+      });
+
+      subscribers.Subscribers.forEach((element) => {
+        emailSender(
+          element.email,
+          `New post by ${req.user.name}`,
+          `
+          <h2>New Post</h2>
+          <p>Title: ${title}</p>
+          <p>Content: ${content}</p>
+          <p>Author: ${req.user.name}</p>  `
+        );
+      });
+
       return responseHandler(res, 200, "Post created successfully", {
         post: result,
       });
@@ -101,47 +130,91 @@ export const getPost = async (req, res, next) => {
 
 export const likePost = async (req, res, next) => {
   try {
-    const { post_id } = req.params;
+    const { id, type } = req.query;
     const user_id = req.user.id;
-
-    const post = await Post.findOne({
-      where: { id: post_id },
-    });
-    console.log("post " + JSON.stringify(post));
-    if (!post) {
-      throw new AppError(404, "post not found");
-    }
-
-    const PostLikedAlready = await Like.findOne({
-      where: { post_id, user_id },
-    });
-
-    if (PostLikedAlready) {
-      const deletedLike = await Like.destroy({
-        where: {
-          user_id: user_id,
-          post_id: post_id,
-        },
+    console.log(` id is ${id} and type is ${type}`);
+    if (type == "post") {
+      const post = await Post.findOne({
+        where: { id: id },
       });
-      if (!deletedLike) {
-        throw new AppError(500, "Failed to unlike post");
+      console.log("post " + JSON.stringify(post));
+      if (!post) {
+        throw new AppError(404, "post not found");
       }
-      return responseHandler(res, 200, "Post unliked successfully", {
-        post: post,
+
+      const PostLikedAlready = await Like.findOne({
+        where: { postId: id, userId: user_id },
+      });
+      console.log(`post id is ${id} and user id ${user_id}`);
+      console.log("post likesd arleady" + JSON.stringify(PostLikedAlready));
+
+      if (PostLikedAlready) {
+        const deletedLike = await Like.destroy({
+          where: {
+            userId: user_id,
+            postId: id,
+          },
+        });
+        if (!deletedLike) {
+          throw new AppError(500, "Failed to unlike post");
+        }
+        return responseHandler(res, 200, "Post unliked successfully", {
+          post: post,
+        });
+      }
+
+      const likedPost = await Like.create({
+        postId: id,
+        userId: user_id,
+      });
+      if (!likedPost) {
+        return responseHandler(res, 404, "post not found");
+      }
+
+      return responseHandler(res, 200, "Post liked successfully", {
+        post: likedPost,
+      });
+    } else {
+      const comment = await Comment.findOne({
+        where: { id: id },
+      });
+      console.log("comment " + JSON.stringify(comment));
+      if (!comment) {
+        throw new AppError(404, "post not found");
+      }
+      console.log("user id " + JSON.stringify(user_id));
+      const CommentLikedAlready = await Like.findOne({
+        where: { commentId: id, userId: user_id },
+      });
+      console.log("here");
+
+      if (CommentLikedAlready) {
+        const deletedLike = await Like.destroy({
+          where: {
+            userId: user_id,
+            commentId: id,
+          },
+        });
+        if (!deletedLike) {
+          throw new AppError(500, "Failed to unlike post");
+        }
+        return responseHandler(res, 200, "comment unliked successfully", {
+          post: deletedLike,
+        });
+      }
+
+      const likedComment = await Like.create({
+        commentId: id,
+        userId: user_id,
+      });
+      if (!likedComment) {
+        return responseHandler(res, 404, "comment not found");
+      }
+
+      return responseHandler(res, 200, "comment liked successfully", {
+        post: likedComment,
       });
     }
-
-    const likedPost = await Like.create({
-      post_id,
-      user_id,
-    });
-    if (!likedPost) {
-      return responseHandler(res, 404, "post not found");
-    }
-
-    return responseHandler(res, 200, "Post liked successfully", {
-      post: likedPost,
-    });
   } catch (error) {
     next(error);
   }
@@ -152,12 +225,17 @@ export const comment = async (req, res) => {
     const post_id = req.params.id;
     const user_id = req.user.id;
     const { comment } = req.body;
-    const addcomment = await addComment(post_id, comment, user_id);
-    if (!addcomment) {
+    const newcomment = await Comment.create({
+      post_id,
+      comment,
+      user_id,
+    });
+    console.log("new comment " + JSON.stringify(newcomment));
+    if (!newcomment) {
       return responseHandler(res, 404, "Failed to comment");
     }
     return responseHandler(res, 200, "Comment added successfully", {
-      comment: addcomment,
+      comment: newcomment,
     });
   } catch (error) {
     next(error);

@@ -75,7 +75,9 @@ export const updateStatus = async (req, res, next) => {
 
 export const getAllPost = async (req, res) => {
   try {
-    const posts = await Post.findAll({});
+    const posts = await Post.findAll({
+      isPublished: true,
+    });
     if (!posts) {
       return responseHandler(res, 404, "No posts found");
     }

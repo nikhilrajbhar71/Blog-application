@@ -1,7 +1,6 @@
 import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
 import Post from "../models/post.model.js";
-import Subscription from "../models/subscription.model.js";
 import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import emailSender from "../utils/emailSender.js";
@@ -12,13 +11,8 @@ export const createPost = async (req, res, next) => {
     const { title, content, category_id, is_published } = req.body;
     const author_id = req.user.id;
     const banner_image = `/uploads/${req.file.filename}`;
-    console.log("banner image: " + banner_image);
-    let is_publish = false;
-    if (is_published == "true") {
-      is_publish = true;
-    } else {
-      is_publish = false;
-    }
+    let is_publish = is_published == "true";
+
     const result = await Post.create({
       title,
       content,
@@ -28,19 +22,19 @@ export const createPost = async (req, res, next) => {
       is_publish,
     });
     if (result) {
-      const subscribers = await User.findOne({
+      const subscribers = await User.findAll({
         where: { id: req.user.id },
         include: [
           {
             model: User,
             as: "Subscribers",
             attributes: ["id", "name", "email"],
-            through: { attributes: [] },
           },
         ],
       });
+      console.log("subscribers " + JSON.stringify(subscribers));
 
-      subscribers.Subscribers.forEach((element) => {
+      subscribers[0].Subscribers.forEach((element) => {
         emailSender(
           element.email,
           `New post by ${req.user.name}`,
@@ -68,12 +62,7 @@ export const updateStatus = async (req, res, next) => {
     console.log("here");
     const { is_published } = req.body;
     const { id } = req.params;
-    let status = false;
-    if (is_published == "true") {
-      status = true;
-    } else {
-      status = false;
-    }
+    console.log("id is " + id);
     const post = await Post.findByPk(id);
     if (!post) {
       throw new AppError(404, "Post not found");
@@ -81,7 +70,6 @@ export const updateStatus = async (req, res, next) => {
     if (post.author_id != req.user.id) {
       throw new AppError(401, "Unauthorized to update post");
     }
-    console.log("post" + JSON.stringify(post));
 
     console.log("req use " + JSON.stringify(req.user));
 
@@ -102,10 +90,41 @@ export const updateStatus = async (req, res, next) => {
   }
 };
 
+export const deletePost = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const post = await Post.findByPk(id);
+    if (!post) {
+      throw new AppError(404, "Post not found");
+    }
+    if (post.author_id != req.user.id) {
+      throw new AppError(401, "Unauthorized to delete post");
+    }
+
+    const deletedPost = await Post.update(
+      { isDeleted: true },
+      { where: { id } }
+    );
+
+    if (!deletedPost) {
+      throw new AppError(404, "Post not found");
+    }
+
+    return responseHandler(res, 200, "Post status deleted successfully", {
+      post: deletePost,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getAllPost = async (req, res) => {
   try {
     const posts = await Post.findAll({
-      isPublished: true,
+      where: {
+        isPublished: true,
+        isDeleted: false,
+      },
     });
     if (!posts) {
       return responseHandler(res, 404, "No posts found");
@@ -120,7 +139,6 @@ export const getPost = async (req, res, next) => {
   try {
     const id = req.params.id;
     const post = await Post.findByPk(id);
-    console.log(JSON.stringify(post));
     if (!post) {
       throw new AppError(404, "post not found");
     }
@@ -130,11 +148,11 @@ export const getPost = async (req, res, next) => {
   }
 };
 
-export const likePost = async (req, res, next) => {
+export const likePostAndComment = async (req, res, next) => {
   try {
     const { id, type } = req.query;
     const user_id = req.user.id;
-    console.log(` id is ${id} and type is ${type}`);
+
     if (type == "post") {
       const post = await Post.findOne({
         where: { id: id },
@@ -147,8 +165,6 @@ export const likePost = async (req, res, next) => {
       const PostLikedAlready = await Like.findOne({
         where: { postId: id, userId: user_id },
       });
-      console.log(`post id is ${id} and user id ${user_id}`);
-      console.log("post likesd arleady" + JSON.stringify(PostLikedAlready));
 
       if (PostLikedAlready) {
         const deletedLike = await Like.destroy({
@@ -180,15 +196,12 @@ export const likePost = async (req, res, next) => {
       const comment = await Comment.findOne({
         where: { id: id },
       });
-      console.log("comment " + JSON.stringify(comment));
       if (!comment) {
-        throw new AppError(404, "post not found");
+        throw new AppError(404, "comment not found");
       }
-      console.log("user id " + JSON.stringify(user_id));
       const CommentLikedAlready = await Like.findOne({
         where: { commentId: id, userId: user_id },
       });
-      console.log("here");
 
       if (CommentLikedAlready) {
         const deletedLike = await Like.destroy({
@@ -201,7 +214,7 @@ export const likePost = async (req, res, next) => {
           throw new AppError(500, "Failed to unlike post");
         }
         return responseHandler(res, 200, "comment unliked successfully", {
-          post: deletedLike,
+          deletedLike,
         });
       }
 
@@ -214,7 +227,7 @@ export const likePost = async (req, res, next) => {
       }
 
       return responseHandler(res, 200, "comment liked successfully", {
-        post: likedComment,
+        likedComment,
       });
     }
   } catch (error) {

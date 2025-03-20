@@ -4,9 +4,10 @@ import upload from "../middleware/upload.js";
 import {
   comment,
   createPost,
+  deletePost,
   getAllPost,
   getPost,
-  likePost,
+  likePostAndComment,
   updateStatus,
 } from "../controllers/post.controller.js";
 import authenticateUser from "../middleware/authenticateUser.js";
@@ -32,9 +33,16 @@ router.put(
   validateUpdateStatus,
   updateStatus
 );
+router.delete(
+  "/delete/:id",
+  authenticateUser,
+  verifyAuthor,
+  validateGetPost,
+  deletePost
+);
 router.get("/getallposts", getAllPost);
 router.get("/getpost/:id", validateGetPost, getPost);
-router.post("/like", authenticateUser, validateLikePost, likePost);
+router.post("/like", authenticateUser, validateLikePost, likePostAndComment);
 router.post("/comment/:id", authenticateUser, validateComment, comment);
 
 export default router;

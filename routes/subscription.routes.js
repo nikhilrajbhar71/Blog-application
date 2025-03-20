@@ -11,5 +11,5 @@ const router = express.Router();
 
 router.post("/subscribe/:author_id", authenticateUser, subscribe);
 router.get("/getsubscribers", authenticateUser, verifyAuthor, getsubscribers);
-router.get("/allsubscriptions", authenticateUser, getsubscriptions);
+router.get("/getsubscriptions", authenticateUser, getsubscriptions);
 export default router;

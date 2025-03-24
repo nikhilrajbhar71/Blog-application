@@ -3,7 +3,7 @@ import Like from "../models/like.model.js";
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
-import emailSender from "../utils/emailSender.js";
+import { notifySubscribers } from "../utils/notifySubscriber.js";
 import responseHandler from "../utils/responseHandler.js";
 
 export const createPost = async (req, res, next) => {
@@ -22,6 +22,10 @@ export const createPost = async (req, res, next) => {
       is_publish,
     });
     if (result) {
+      responseHandler(res, 201, "Post created successfully", {
+        post: result,
+      });
+      // will notify the subsubcribers after creating the post, as it can be done in background,without delaying the reponse
       const subscribers = await User.findAll({
         where: { id: req.user.id },
         include: [
@@ -32,23 +36,14 @@ export const createPost = async (req, res, next) => {
           },
         ],
       });
-      console.log("subscribers " + JSON.stringify(subscribers));
 
-      subscribers[0].Subscribers.forEach((element) => {
-        emailSender(
-          element.email,
-          `New post by ${req.user.name}`,
-          `
-          <h2>New Post</h2>
-          <p>Title: ${title}</p>
-          <p>Content: ${content}</p>
-          <p>Author: ${req.user.name}</p>  `
-        );
-      });
-
-      return responseHandler(res, 200, "Post created successfully", {
-        post: result,
-      });
+      Promise.all(
+        subscribers[0].Subscribers.map((subscriber) =>
+          notifySubscribers(req.user, subscriber, title, content)
+        )
+      )
+        .then(() => console.log("Notifications sent successfully"))
+        .catch((err) => console.error("Error sending notifications", err));
     } else {
       return responseHandler(res, 401, "Failed to create post");
     }
@@ -59,19 +54,15 @@ export const createPost = async (req, res, next) => {
 
 export const updateStatus = async (req, res, next) => {
   try {
-    console.log("here");
     const { is_published } = req.body;
     const { id } = req.params;
-    console.log("id is " + id);
     const post = await Post.findByPk(id);
     if (!post) {
       throw new AppError(404, "Post not found");
     }
     if (post.author_id != req.user.id) {
-      throw new AppError(401, "Unauthorized to update post");
+      throw new AppError(401, "Unauthorized to update the post");
     }
-
-    console.log("req use " + JSON.stringify(req.user));
 
     const updatedPost = await Post.update(
       { isPublished: is_published },
@@ -129,7 +120,9 @@ export const getAllPost = async (req, res) => {
     if (!posts) {
       return responseHandler(res, 404, "No posts found");
     }
-    return responseHandler(res, 200, "OK", { posts });
+    return responseHandler(res, 200, "All posts fetched successfully", {
+      posts,
+    });
   } catch (error) {
     next(error);
   }
@@ -157,7 +150,6 @@ export const likePostAndComment = async (req, res, next) => {
       const post = await Post.findOne({
         where: { id: id },
       });
-      console.log("post " + JSON.stringify(post));
       if (!post) {
         throw new AppError(404, "post not found");
       }
@@ -189,7 +181,7 @@ export const likePostAndComment = async (req, res, next) => {
         return responseHandler(res, 404, "post not found");
       }
 
-      return responseHandler(res, 200, "Post liked successfully", {
+      return responseHandler(res, 201, "Post liked successfully", {
         post: likedPost,
       });
     } else {
@@ -245,7 +237,6 @@ export const comment = async (req, res) => {
       comment,
       user_id,
     });
-    console.log("new comment " + JSON.stringify(newcomment));
     if (!newcomment) {
       return responseHandler(res, 404, "Failed to comment");
     }

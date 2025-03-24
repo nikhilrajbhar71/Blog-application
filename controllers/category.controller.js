@@ -41,3 +41,26 @@ export const getAllCategories = async (req, res, next) => {
     next(error);
   }
 };
+export const deleteCategory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const category = await Category.findByPk(id);
+    if (!category) {
+      throw new AppError(404, "category not found");
+    }
+
+    const deletedCategory = await Category.destroy({
+      where: { id: id },
+    });
+
+    if (!deletedCategory) {
+      throw new AppError(404, "category not found");
+    }
+
+    return responseHandler(res, 200, "Category deleted successfully", {
+      post: deletedCategory,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

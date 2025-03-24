@@ -7,7 +7,9 @@ import { jwtSignHelper } from "../utils/jwtSignHelper.js";
 export const userRegister = async (req, res, next) => {
   try {
     const { email, password, role, name } = req.body;
-
+    if (role == "admin") {
+      role = "viewer";
+    }
     const existingUser = await User.findOne({ where: { email } });
 
     if (existingUser) {

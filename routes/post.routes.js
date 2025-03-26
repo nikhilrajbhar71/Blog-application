@@ -34,13 +34,13 @@ router.put(
   updateStatus
 );
 router.delete(
-  "/delete/:id",
+  "/:id",
   authenticateUser,
   verifyAuthor,
   validateGetPost,
   deletePost
 );
-router.get("/getallposts", getAllPost);
+router.get("/", getAllPost);
 router.get("/getpost/:id", validateGetPost, getPost);
 router.post("/like", authenticateUser, validateLikePost, likePostAndComment);
 router.post("/comment/:id", authenticateUser, validateComment, comment);

@@ -3,7 +3,6 @@ import Like from "../models/like.model.js";
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
-import { notifySubscribers } from "../utils/notifySubscriber.js";
 import responseHandler from "../utils/responseHandler.js";
 
 export const createPost = async (req, res, next) => {

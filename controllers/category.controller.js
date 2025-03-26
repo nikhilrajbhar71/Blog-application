@@ -3,7 +3,7 @@ import AppError from "../utils/AppError.js";
 import responseHandler from "../utils/responseHandler.js";
 export const createCategory = async (req, res, next) => {
   try {
-    const { name } = req.body;
+    let name = req.body.name.trim().toLowerCase();
     const existingCategory = await Category.findOne({ where: { name } });
 
     if (existingCategory) {
@@ -12,13 +12,10 @@ export const createCategory = async (req, res, next) => {
     const result = await Category.create({
       name,
     });
-    if (result) {
-      return responseHandler(res, 201, "Category created successfully", {
-        result,
-      });
-    } else {
-      return responseHandler(res, 400, "Failed to create category");
-    }
+
+    return responseHandler(res, 201, "Category created successfully", {
+      result,
+    });
   } catch (error) {
     next(error);
   }
@@ -30,13 +27,9 @@ export const getAllCategories = async (req, res, next) => {
       where: {},
     });
 
-    if (result) {
-      return responseHandler(res, 200, "All categories fetched successfully", {
-        result,
-      });
-    } else {
-      throw new AppError(404, "NO catogry found");
-    }
+    return responseHandler(res, 200, "All categories fetched successfully", {
+      result,
+    });
   } catch (error) {
     next(error);
   }
@@ -44,18 +37,10 @@ export const getAllCategories = async (req, res, next) => {
 export const deleteCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const category = await Category.findByPk(id);
-    if (!category) {
-      throw new AppError(404, "category not found");
-    }
 
     const deletedCategory = await Category.destroy({
       where: { id: id },
     });
-
-    if (!deletedCategory) {
-      throw new AppError(404, "category not found");
-    }
 
     return responseHandler(res, 200, "Category deleted successfully", {
       post: deletedCategory,

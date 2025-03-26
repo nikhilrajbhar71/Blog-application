@@ -17,6 +17,6 @@ router.post(
   validateCategoryCreation,
   createCategory
 );
-router.get("/getallcategories", authenticateUser, getAllCategories);
-router.delete("/delete/:id", authenticateUser, verifyAdmin, deleteCategory);
+router.get("/", authenticateUser, getAllCategories);
+router.delete("/:id", authenticateUser, verifyAdmin, deleteCategory);
 export default router;

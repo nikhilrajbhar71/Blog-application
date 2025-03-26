@@ -44,7 +44,7 @@ export const userLogin = async (req, res, next) => {
 
     const isVerified = await bcrypt.compare(password, user.password);
     if (!isVerified) {
-      return responseHandler(res, 401, "Incorrect password");
+      return responseHandler(res, 401, "Incorrect username or password");
     }
 
     const accessToken = jwtSignHelper(user, "1h", process.env.JWT_SECRET);

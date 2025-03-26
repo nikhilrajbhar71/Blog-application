@@ -21,32 +21,10 @@ export const createPost = async (req, res, next) => {
       category_id,
       is_publish,
     });
-    if (result) {
-      responseHandler(res, 201, "Post created successfully", {
-        post: result,
-      });
-      // will notify the subsubcribers after creating the post, as it can be done in background,without delaying the reponse
-      const subscribers = await User.findAll({
-        where: { id: req.user.id },
-        include: [
-          {
-            model: User,
-            as: "Subscribers",
-            attributes: ["id", "name", "email"],
-          },
-        ],
-      });
 
-      Promise.all(
-        subscribers[0].Subscribers.map((subscriber) =>
-          notifySubscribers(req.user, subscriber, title, content)
-        )
-      )
-        .then(() => console.log("Notifications sent successfully"))
-        .catch((err) => console.error("Error sending notifications", err));
-    } else {
-      return responseHandler(res, 401, "Failed to create post");
-    }
+    responseHandler(res, 201, "Post created successfully", {
+      post: result,
+    });
   } catch (error) {
     next(error);
   }
@@ -57,9 +35,7 @@ export const updateStatus = async (req, res, next) => {
     const { is_published } = req.body;
     const { id } = req.params;
     const post = await Post.findByPk(id);
-    if (!post) {
-      throw new AppError(404, "Post not found");
-    }
+
     if (post.author_id != req.user.id) {
       throw new AppError(401, "Unauthorized to update the post");
     }
@@ -68,10 +44,6 @@ export const updateStatus = async (req, res, next) => {
       { isPublished: is_published },
       { where: { id } }
     );
-
-    if (!updatedPost) {
-      throw new AppError(404, "Post not found");
-    }
 
     return responseHandler(res, 200, "Post status updated successfully", {
       post: updatedPost,
@@ -97,12 +69,8 @@ export const deletePost = async (req, res, next) => {
       { where: { id } }
     );
 
-    if (!deletedPost) {
-      throw new AppError(404, "Post not found");
-    }
-
     return responseHandler(res, 200, "Post status deleted successfully", {
-      post: deletePost,
+      post: deletedPost,
     });
   } catch (error) {
     next(error);
@@ -117,9 +85,7 @@ export const getAllPost = async (req, res) => {
         isDeleted: false,
       },
     });
-    if (!posts) {
-      return responseHandler(res, 404, "No posts found");
-    }
+
     return responseHandler(res, 200, "All posts fetched successfully", {
       posts,
     });
@@ -237,9 +203,7 @@ export const comment = async (req, res) => {
       comment,
       user_id,
     });
-    if (!newcomment) {
-      return responseHandler(res, 404, "Failed to comment");
-    }
+    
     return responseHandler(res, 200, "Comment added successfully", {
       comment: newcomment,
     });

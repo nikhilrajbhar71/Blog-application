@@ -7,7 +7,8 @@ import {
   deletePost,
   getAllPost,
   getPost,
-  likePostAndComment,
+  likeComment,
+  likePost,
   updateStatus,
 } from "../controllers/post.controller.js";
 import authenticateUser from "../middleware/authenticateUser.js";
@@ -41,8 +42,10 @@ router.delete(
   deletePost
 );
 router.get("/", getAllPost);
-router.get("/getpost/:id", validateGetPost, getPost);
-router.post("/like", authenticateUser, validateLikePost, likePostAndComment);
+router.get("/get/:id", validateGetPost, getPost);
+router.post("/likePost/:id", authenticateUser, validateGetPost, likePost);
+router.post("/likecomment/:id", authenticateUser, validateGetPost, likeComment);
+
 router.post("/comment/:id", authenticateUser, validateComment, comment);
 
 export default router;

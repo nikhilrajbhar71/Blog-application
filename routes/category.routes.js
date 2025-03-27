@@ -4,7 +4,6 @@ import {
   deleteCategory,
   getAllCategories,
 } from "../controllers/category.controller.js";
-import verifyAuthor from "../middleware/verifyAuthor.js";
 import authenticateUser from "../middleware/authenticateUser.js";
 import { validateCategoryCreation } from "../middleware/validators/category/categoryValidator.js";
 import verifyAdmin from "../middleware/verifyAdmin.js";

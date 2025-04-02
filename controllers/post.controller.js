@@ -1,8 +1,8 @@
 import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
 import Post from "../models/post.model.js";
-import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
+import { notifySubscribers } from "../utils/notifySubscriber.js";
 import responseHandler from "../utils/responseHandler.js";
 
 export const createPost = async (req, res, next) => {
@@ -19,6 +19,8 @@ export const createPost = async (req, res, next) => {
       category_id,
       is_published,
     });
+
+    notifySubscribers(req.user, title, content);
 
     responseHandler(res, 201, "Post created successfully", {
       post: result,
@@ -127,7 +129,7 @@ export const likeComment = async (req, res, next) => {
           commentId: id,
         },
       });
-      
+
       return responseHandler(res, 200, "comment unliked successfully", {
         deletedLike,
       });
@@ -137,7 +139,6 @@ export const likeComment = async (req, res, next) => {
       commentId: id,
       userId: user_id,
     });
-   
 
     return responseHandler(res, 200, "comment liked successfully", {
       likedComment,
@@ -191,7 +192,7 @@ export const comment = async (req, res, next) => {
     const post_id = req.params.id;
     const user_id = req.user.id;
     const { comment } = req.body;
-   
+
     const newcomment = await Comment.create({
       post_id,
       comment,

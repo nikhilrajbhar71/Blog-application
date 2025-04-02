@@ -42,7 +42,7 @@ router.delete(
   deletePost
 );
 router.get("/", getAllPost);
-router.get("/get/:id", validateGetPost, getPost);
+router.get("/:id", validateGetPost, getPost);
 router.post("/likePost/:id", authenticateUser, validateGetPost, likePost);
 router.post("/likecomment/:id", authenticateUser, validateGetPost, likeComment);
 

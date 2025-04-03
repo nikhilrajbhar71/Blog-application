@@ -9,6 +9,7 @@ import {
   getPost,
   likeComment,
   likePost,
+  ReplyOnComment,
   updateStatus,
 } from "../controllers/post.controller.js";
 import authenticateUser from "../middleware/authenticateUser.js";
@@ -17,6 +18,7 @@ import { validateUpdateStatus } from "../middleware/validators/posts/updatePostV
 import { validateGetPost } from "../middleware/validators/posts/getPostValidator.js";
 import { validateLikePost } from "../middleware/validators/posts/likeValidator.js";
 import { validateComment } from "../middleware/validators/posts/commentValidator.js";
+import { validateGetAllposts } from "../middleware/validators/posts/getAllPosts.js";
 const router = express.Router();
 
 router.post(
@@ -41,11 +43,12 @@ router.delete(
   validateGetPost,
   deletePost
 );
-router.get("/", getAllPost);
+router.get("/", validateGetAllposts, getAllPost);
 router.get("/:id", validateGetPost, getPost);
 router.post("/likePost/:id", authenticateUser, validateGetPost, likePost);
 router.post("/likecomment/:id", authenticateUser, validateGetPost, likeComment);
 
 router.post("/comment/:id", authenticateUser, validateComment, comment);
+router.post("/reply/:id", authenticateUser, validateComment, ReplyOnComment);
 
 export default router;

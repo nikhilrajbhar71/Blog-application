@@ -7,17 +7,16 @@ import responseHandler from "../utils/responseHandler.js";
 
 export const createPost = async (req, res, next) => {
   try {
-    const { title, content, category_id, is_published } = req.body;
+    const { title, content, category_id, isPublished } = req.body;
     const author_id = req.user.id;
     const banner_image = `/uploads/${req.file.filename}`;
-
     const result = await Post.create({
       title,
       content,
       banner_image,
       author_id,
       category_id,
-      is_published,
+      isPublished,
     });
 
     notifySubscribers(req.user, title, content);
@@ -32,7 +31,6 @@ export const createPost = async (req, res, next) => {
 
 export const updateStatus = async (req, res, next) => {
   try {
-    const { is_published } = req.body;
     const { id } = req.params;
     const post = await Post.findByPk(id);
 
@@ -41,7 +39,7 @@ export const updateStatus = async (req, res, next) => {
     }
 
     const updatedPost = await Post.update(
-      { isPublished: is_published },
+      { isPublished: Sequelize.literal("NOT isPublished") },
       { where: { id } }
     );
 
@@ -77,9 +75,18 @@ export const deletePost = async (req, res, next) => {
   }
 };
 
-export const getAllPost = async (req, res) => {
+export const getAllPost = async (req, res, next) => {
   try {
+    let { page, limit } = req.query;
+
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
+    const offset = (page - 1) * limit;
+
     const posts = await Post.findAll({
+      limit: limit,
+      offset: offset,
+      order: [["createdAt", "DESC"]],
       where: {
         isPublished: true,
         isDeleted: false,
@@ -130,9 +137,7 @@ export const likeComment = async (req, res, next) => {
         },
       });
 
-      return responseHandler(res, 200, "comment unliked successfully", {
-        deletedLike,
-      });
+      return responseHandler(res, 200, "successfull", {});
     }
 
     const likedComment = await Like.create({
@@ -140,9 +145,7 @@ export const likeComment = async (req, res, next) => {
       userId: user_id,
     });
 
-    return responseHandler(res, 200, "comment liked successfully", {
-      likedComment,
-    });
+    return responseHandler(res, 200, "successfull", {});
   } catch (error) {
     next(error);
   }
@@ -163,16 +166,14 @@ export const likePost = async (req, res, next) => {
     });
 
     if (PostLikedAlready) {
-      const deletedLike = await Like.destroy({
+      await Like.destroy({
         where: {
           userId: user_id,
           postId: id,
         },
       });
 
-      return responseHandler(res, 200, "Post unliked successfully", {
-        post: post,
-      });
+      return responseHandler(res, 200, "Post unliked successfully", {});
     }
 
     const likedPost = await Like.create({
@@ -180,9 +181,7 @@ export const likePost = async (req, res, next) => {
       userId: user_id,
     });
 
-    return responseHandler(res, 201, "Post liked successfully", {
-      post: likedPost,
-    });
+    return responseHandler(res, 201, "Post liked successfully", {});
   } catch (error) {
     next(error);
   }
@@ -195,6 +194,26 @@ export const comment = async (req, res, next) => {
 
     const newcomment = await Comment.create({
       post_id,
+      comment,
+      user_id,
+    });
+
+    return responseHandler(res, 200, "Comment added successfully", {
+      comment: newcomment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const ReplyOnComment = async (req, res, next) => {
+  try {
+    const parent_comment_id = req.params.id;
+    const user_id = req.user.id;
+    const { comment } = req.body;
+
+    const newcomment = await Comment.create({
+      parent_comment_id,
       comment,
       user_id,
     });

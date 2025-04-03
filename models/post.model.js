@@ -37,7 +37,6 @@ const Post = sequelize.define(
   }
 );
 
-
 Post.belongsTo(User, { foreignKey: "author_id", onDelete: "SET NULL" });
 User.hasMany(Post, { foreignKey: "author_id" });
 

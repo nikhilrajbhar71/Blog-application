@@ -9,12 +9,12 @@ export const createCategory = async (req, res, next) => {
     if (existingCategory) {
       throw new AppError(409, "Category already exists");
     }
-    const result = await Category.create({
+    const category = await Category.create({
       name,
     });
 
     return responseHandler(res, 201, "Category created successfully", {
-      result,
+      category,
     });
   } catch (error) {
     next(error);
@@ -23,7 +23,16 @@ export const createCategory = async (req, res, next) => {
 
 export const getAllCategories = async (req, res, next) => {
   try {
+    let { page, limit } = req.query;
+
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
+    const offset = (page - 1) * limit;
+
     const result = await Category.findAll({
+      limit: limit,
+      offset: offset,
+      order: [["createdAt", "DESC"]],
       where: {},
     });
 

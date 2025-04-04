@@ -2,22 +2,19 @@ import express from "express";
 import verifyAuthor from "../middleware/verifyAuthor.js";
 import upload from "../middleware/upload.js";
 import {
-  comment,
   createPost,
   deletePost,
   getAllPost,
   getPost,
   likeComment,
   likePost,
-  ReplyOnComment,
   updateStatus,
 } from "../controllers/post.controller.js";
 import authenticateUser from "../middleware/authenticateUser.js";
 import { validatePostCreation } from "../middleware/validators/posts/postValidator.js";
-import { validateUpdateStatus } from "../middleware/validators/posts/updatePostValidator.js";
+
 import { validateGetPost } from "../middleware/validators/posts/getPostValidator.js";
-import { validateLikePost } from "../middleware/validators/posts/likeValidator.js";
-import { validateComment } from "../middleware/validators/posts/commentValidator.js";
+
 import { validateGetAllposts } from "../middleware/validators/posts/getAllPosts.js";
 const router = express.Router();
 
@@ -29,13 +26,7 @@ router.post(
   validatePostCreation,
   createPost
 );
-router.put(
-  "/:id/status",
-  authenticateUser,
-  verifyAuthor,
-  validateUpdateStatus,
-  updateStatus
-);
+router.put("/:id/status", authenticateUser, verifyAuthor, updateStatus);
 router.delete(
   "/:id",
   authenticateUser,
@@ -47,8 +38,5 @@ router.get("/", validateGetAllposts, getAllPost);
 router.get("/:id", validateGetPost, getPost);
 router.post("/likePost/:id", authenticateUser, validateGetPost, likePost);
 router.post("/likecomment/:id", authenticateUser, validateGetPost, likeComment);
-
-router.post("/comment/:id", authenticateUser, validateComment, comment);
-router.post("/reply/:id", authenticateUser, validateComment, ReplyOnComment);
 
 export default router;

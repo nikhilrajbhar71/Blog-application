@@ -29,7 +29,7 @@ export const getAllCategories = async (req, res, next) => {
     limit = parseInt(limit) || 10;
     const offset = (page - 1) * limit;
 
-    const result = await Category.findAll({
+    const categories = await Category.findAll({
       limit: limit,
       offset: offset,
       order: [["createdAt", "DESC"]],
@@ -37,7 +37,7 @@ export const getAllCategories = async (req, res, next) => {
     });
 
     return responseHandler(res, 200, "All categories fetched successfully", {
-      result,
+      categories,
     });
   } catch (error) {
     next(error);

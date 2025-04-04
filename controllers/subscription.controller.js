@@ -28,9 +28,7 @@ export const subscribe = async (req, res, next) => {
       user_id: user_id,
       author_id: author_id,
     });
-    responseHandler(res, 200, "Subscription created successfully", {
-      newSubscription,
-    });
+    responseHandler(res, 200, "Subscription created successfully", {});
   } catch (error) {
     next(error);
   }

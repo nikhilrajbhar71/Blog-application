@@ -1,3 +1,4 @@
+import { Sequelize } from "sequelize";
 import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
 import Post from "../models/post.model.js";
@@ -43,9 +44,7 @@ export const updateStatus = async (req, res, next) => {
       { where: { id } }
     );
 
-    return responseHandler(res, 200, "Post status updated successfully", {
-      post: updatedPost,
-    });
+    return responseHandler(res, 200, "Post status updated successfully", {});
   } catch (error) {
     next(error);
   }
@@ -67,9 +66,7 @@ export const deletePost = async (req, res, next) => {
       { where: { id } }
     );
 
-    return responseHandler(res, 200, "Post status deleted successfully", {
-      post: deletedPost,
-    });
+    return responseHandler(res, 200, "Post status deleted successfully", {});
   } catch (error) {
     next(error);
   }
@@ -137,7 +134,7 @@ export const likeComment = async (req, res, next) => {
         },
       });
 
-      return responseHandler(res, 200, "successfull", {});
+      return responseHandler(res, 200, "comment unliked successfully", {});
     }
 
     const likedComment = await Like.create({
@@ -145,7 +142,7 @@ export const likeComment = async (req, res, next) => {
       userId: user_id,
     });
 
-    return responseHandler(res, 200, "successfull", {});
+    return responseHandler(res, 200, "comment liked successfully", {});
   } catch (error) {
     next(error);
   }
@@ -182,45 +179,6 @@ export const likePost = async (req, res, next) => {
     });
 
     return responseHandler(res, 201, "Post liked successfully", {});
-  } catch (error) {
-    next(error);
-  }
-};
-export const comment = async (req, res, next) => {
-  try {
-    const post_id = req.params.id;
-    const user_id = req.user.id;
-    const { comment } = req.body;
-
-    const newcomment = await Comment.create({
-      post_id,
-      comment,
-      user_id,
-    });
-
-    return responseHandler(res, 200, "Comment added successfully", {
-      comment: newcomment,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const ReplyOnComment = async (req, res, next) => {
-  try {
-    const parent_comment_id = req.params.id;
-    const user_id = req.user.id;
-    const { comment } = req.body;
-
-    const newcomment = await Comment.create({
-      parent_comment_id,
-      comment,
-      user_id,
-    });
-
-    return responseHandler(res, 200, "Comment added successfully", {
-      comment: newcomment,
-    });
   } catch (error) {
     next(error);
   }

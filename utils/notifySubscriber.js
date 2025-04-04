@@ -12,22 +12,21 @@ export const notifySubscribers = async (user, title, content) => {
       },
     ],
   });
-  console.log("all subscribers " + JSON.stringify(subscribers));
-  setImmediate(() => {
-    subscribers[0].Subscribers.forEach((subscriber) => {
-      try {
-        emailSender(
-          subscriber.email,
-          `New post by ${user.name}`,
-          `
-              <h2>New Post</h2>
-              <p>Title: ${title}</p>
-              <p>Content: ${content}</p>
-              <p>Author: ${user.name}</p>  `
-        );
-      } catch (err) {
-        console.error("Error sending notification to:", subscriber.email, err);
-      }
-    });
+
+  subscribers[0].Subscribers.forEach((subscriber) => {
+    try {
+      emailSender(
+        subscriber.email,
+        `New post by ${user.name}`,
+        `
+          <h2>New Post</h2>
+          <p>Title: ${title}</p>
+          <p>Content: ${content}</p>
+          <p>Author: ${user.name}</p>  
+        `
+      );
+    } catch (err) {
+      console.error("Error sending notification to:", subscriber.email, err);
+    }
   });
 };

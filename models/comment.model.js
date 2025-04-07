@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
-import User from "../models/category.model.js";
+import User from "../models/user.model.js";
 import Post from "../models/post.model.js";
 
 const Comment = sequelize.define(
@@ -20,7 +20,6 @@ const Comment = sequelize.define(
     timestamps: true,
   }
 );
-
 
 Comment.belongsTo(User, { foreignKey: "user_id", onDelete: "CASCADE" });
 User.hasMany(Comment, { foreignKey: "user_id" });

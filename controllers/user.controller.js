@@ -7,9 +7,7 @@ import { jwtSignHelper } from "../utils/jwtSignHelper.js";
 export const userRegister = async (req, res, next) => {
   try {
     const { email, password, role, name } = req.body;
-    if (role == "admin") {
-      role = "viewer";
-    }
+    
     const existingUser = await User.findOne({ where: { email } });
 
     if (existingUser) {
@@ -44,7 +42,7 @@ export const userLogin = async (req, res, next) => {
 
     const isVerified = await bcrypt.compare(password, user.password);
     if (!isVerified) {
-      return responseHandler(res, 401, "Incorrect password");
+      return responseHandler(res, 401, "Incorrect username or password");
     }
 
     const accessToken = jwtSignHelper(user, "1h", process.env.JWT_SECRET);

@@ -29,7 +29,7 @@ export const validatePostCreation = [
 
   body("is_published")
     .optional()
-    .isIn(["true", "false"])
+    .isIn([1, 0])
     .withMessage("is_published must be 'true' or 'false'"),
 
   handleValidationErrors,

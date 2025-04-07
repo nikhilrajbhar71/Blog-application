@@ -9,7 +9,7 @@ import verifyAuthor from "../middleware/verifyAuthor.js";
 
 const router = express.Router();
 
-router.post("/subscribe/:author_id", authenticateUser, subscribe);
+router.post("/:author_id", authenticateUser, subscribe);
 router.get("/getsubscribers", authenticateUser, verifyAuthor, getsubscribers);
 router.get("/getsubscriptions", authenticateUser, getsubscriptions);
 export default router;

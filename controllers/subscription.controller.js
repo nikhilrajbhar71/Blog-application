@@ -41,8 +41,10 @@ export const getsubscribers = async (req, res, next) => {
         author_id: req.user.id,
       },
     });
+    let count = subscribers.length;
     responseHandler(res, 200, "Subscribers fetched successfully", {
       subscribers,
+      count,
     });
   } catch (error) {
     next(error);
@@ -54,7 +56,25 @@ export const getsubscriptions = async (req, res, next) => {
     const subscriptions = await Subscription.findAll({
       where: { user_id: req.user.id },
     });
+
     responseHandler(res, 200, "Subscriptions fetched successfully", {
+      subscriptions,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const unsubscribe = async (req, res, next) => {
+  try {
+    const subscriptions = await Subscription.destroy({
+      where: {
+        author_id: req.params.id,
+        user_id: req.user.id,
+      },
+    });
+
+    responseHandler(res, 200, "unsubscribed successfully", {
       subscriptions,
     });
   } catch (error) {

@@ -10,7 +10,8 @@ export const createPost = async (req, res, next) => {
   try {
     const { title, content, category_id, isPublished } = req.body;
     const author_id = req.user.id;
-    const bannerImage = `/uploads/${req.file.filename}`;
+    console.log("req fil e" + JSON.stringify(req.file));
+    const bannerImage = req.file.location;
     if (!req.file) {
       return responseHandler(res, 400, "Banner image is required");
     }

@@ -97,13 +97,13 @@ export const deleteUserProfile = async (req, res, next) => {
     if (req.user.id != req.params.id) {
       return responseHandler(res, 401, "Unauthorized", {});
     }
-    const user = await User.destroy({
+    await User.destroy({
       where: {
         id: req.params.id,
       },
     });
 
-    return responseHandler(res, 200, "User profile deleted successfully", user);
+    return responseHandler(res, 200, "User profile deleted successfully", {});
   } catch (error) {
     next(error);
   }

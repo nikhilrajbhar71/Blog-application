@@ -10,7 +10,6 @@ export const createPost = async (req, res, next) => {
   try {
     const { title, content, category_id, isPublished } = req.body;
     const author_id = req.user.id;
-    console.log("req fil e" + JSON.stringify(req.file));
     const bannerImage = req.file.location;
     if (!req.file) {
       return responseHandler(res, 400, "Banner image is required");
@@ -43,7 +42,7 @@ export const updateStatus = async (req, res, next) => {
       throw new AppError(401, "Unauthorized to update the post");
     }
 
-    const updatedPost = await Post.update(
+    await Post.update(
       { isPublished: Sequelize.literal("NOT isPublished") },
       { where: { id } }
     );
@@ -65,10 +64,7 @@ export const deletePost = async (req, res, next) => {
       throw new AppError(401, "Unauthorized to delete post");
     }
 
-    const deletedPost = await Post.update(
-      { isDeleted: true },
-      { where: { id } }
-    );
+    await Post.update({ isDeleted: true }, { where: { id } });
 
     return responseHandler(res, 200, "Post status deleted successfully", {});
   } catch (error) {
@@ -150,7 +146,7 @@ export const likeComment = async (req, res, next) => {
     });
 
     if (CommentLikedAlready) {
-      const deletedLike = await Like.destroy({
+      await Like.destroy({
         where: {
           userId: user_id,
           commentId: id,
@@ -160,7 +156,7 @@ export const likeComment = async (req, res, next) => {
       return responseHandler(res, 200, "comment unliked successfully", {});
     }
 
-    const likedComment = await Like.create({
+    await Like.create({
       commentId: id,
       userId: user_id,
     });
@@ -196,7 +192,7 @@ export const likePost = async (req, res, next) => {
       return responseHandler(res, 200, "Post unliked successfully", {});
     }
 
-    const likedPost = await Like.create({
+    await Like.create({
       postId: id,
       userId: user_id,
     });

@@ -24,7 +24,7 @@ export const subscribe = async (req, res, next) => {
     if (subscription) {
       throw new AppError(400, "User has already subscribed to this author");
     }
-    const newSubscription = await Subscription.create({
+    await Subscription.create({
       user_id: user_id,
       author_id: author_id,
     });
@@ -67,16 +67,14 @@ export const getsubscriptions = async (req, res, next) => {
 
 export const unsubscribe = async (req, res, next) => {
   try {
-    const subscriptions = await Subscription.destroy({
+    await Subscription.destroy({
       where: {
         author_id: req.params.id,
         user_id: req.user.id,
       },
     });
 
-    responseHandler(res, 200, "unsubscribed successfully", {
-      subscriptions,
-    });
+    responseHandler(res, 200, "unsubscribed successfully", {});
   } catch (error) {
     next(error);
   }

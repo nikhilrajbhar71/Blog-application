@@ -47,13 +47,11 @@ export const deleteCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const deletedCategory = await Category.destroy({
+    await Category.destroy({
       where: { id: id },
     });
 
-    return responseHandler(res, 200, "Category deleted successfully", {
-      post: deletedCategory,
-    });
+    return responseHandler(res, 200, "Category deleted successfully", {});
   } catch (error) {
     next(error);
   }

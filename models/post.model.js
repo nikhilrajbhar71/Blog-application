@@ -21,7 +21,7 @@ const Post = sequelize.define(
     },
     bannerImage: {
       type: DataTypes.STRING(255),
-      allowNull: true,
+      allowNull: false,
     },
     isPublished: {
       type: DataTypes.BOOLEAN,

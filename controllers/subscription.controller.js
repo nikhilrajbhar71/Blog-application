@@ -24,7 +24,7 @@ export const subscribe = async (req, res, next) => {
     if (subscription) {
       throw new AppError(400, "User has already subscribed to this author");
     }
-    const newSubscription = await Subscription.create({
+    await Subscription.create({
       user_id: user_id,
       author_id: author_id,
     });
@@ -41,8 +41,10 @@ export const getsubscribers = async (req, res, next) => {
         author_id: req.user.id,
       },
     });
+    let count = subscribers.length;
     responseHandler(res, 200, "Subscribers fetched successfully", {
       subscribers,
+      count,
     });
   } catch (error) {
     next(error);
@@ -54,9 +56,25 @@ export const getsubscriptions = async (req, res, next) => {
     const subscriptions = await Subscription.findAll({
       where: { user_id: req.user.id },
     });
+
     responseHandler(res, 200, "Subscriptions fetched successfully", {
       subscriptions,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const unsubscribe = async (req, res, next) => {
+  try {
+    await Subscription.destroy({
+      where: {
+        author_id: req.params.id,
+        user_id: req.user.id,
+      },
+    });
+
+    responseHandler(res, 200, "unsubscribed successfully", {});
   } catch (error) {
     next(error);
   }

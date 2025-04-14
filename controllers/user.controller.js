@@ -1,14 +1,18 @@
-import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import responseHandler from "../utils/responseHandler.js";
 import { jwtSignHelper } from "../utils/jwtSignHelper.js";
+import {
+  createUser,
+  deleteUser,
+  findUserByEmail,
+  findUserByPk,
+} from "../services/user.service.js";
 
 export const userRegister = async (req, res, next) => {
   try {
     const { email, password, role, name } = req.body;
 
-    const existingUser = await User.findOne({ where: { email } });
-
+    const existingUser = await findUserByEmail(email);
     if (existingUser) {
       return responseHandler(res, 409, "Email already exists");
     }
@@ -16,13 +20,7 @@ export const userRegister = async (req, res, next) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-    });
-    delete user.dataValues.password;
+    const user = await createUser(name, email, hashedPassword, role);
 
     return responseHandler(res, 201, "User registered successfully", {
       user,
@@ -35,7 +33,7 @@ export const userRegister = async (req, res, next) => {
 export const userLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ where: { email } });
+    const user = await findUserByEmail(email);
     if (!user) {
       return responseHandler(res, 404, "User doesn't exist, please sign up.");
     }
@@ -80,9 +78,7 @@ export const refreshToken = async (req, res, next) => {
 
 export const getUserProfile = async (req, res, next) => {
   try {
-    const user = await User.findByPk(req.params.id, {
-      attributes: { exclude: ["password"] },
-    });
+    const user = await findUserByPk(req.params.id);
     if (!user) {
       return responseHandler(res, 404, "user not found", {});
     }
@@ -94,15 +90,7 @@ export const getUserProfile = async (req, res, next) => {
 
 export const deleteUserProfile = async (req, res, next) => {
   try {
-    if (req.user.id != req.params.id) {
-      return responseHandler(res, 401, "Unauthorized", {});
-    }
-    await User.destroy({
-      where: {
-        id: req.params.id,
-      },
-    });
-
+    await deleteUser(req.user.id);
     return responseHandler(res, 200, "User profile deleted successfully", {});
   } catch (error) {
     next(error);

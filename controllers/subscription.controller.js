@@ -1,8 +1,9 @@
 import Subscription from "../models/subscription.model.js";
-import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import responseHandler from "../utils/responseHandler.js";
 
+import { findUserByPk } from "../services/user.service.js";
+import { checkSubscriptionExists, createSubscription } from "../services/subscription.service.js";
 export const subscribe = async (req, res, next) => {
   try {
     const { author_id } = req.params;
@@ -12,23 +13,16 @@ export const subscribe = async (req, res, next) => {
       throw new AppError(400, "User can't subscribe to himself");
     }
 
-    const user = await User.findByPk(author_id);
-    if (user.role !== "author") {
+    const user = await findUserByPk(author_id);
+    if (!user || user.role !== "author") {
       throw new AppError(403, "User is not an author");
     }
 
-    const subscription = await Subscription.findOne({
-      where: { user_id: user_id, author_id: author_id },
-    });
+    await checkSubscriptionExists(user_id, author_id);
 
-    if (subscription) {
-      throw new AppError(400, "User has already subscribed to this author");
-    }
-    await Subscription.create({
-      user_id: user_id,
-      author_id: author_id,
-    });
-    responseHandler(res, 200, "Subscription created successfully", {});
+    await createSubscription(user_id, author_id);
+
+    return responseHandler(res, 200, "Subscription created successfully", {});
   } catch (error) {
     next(error);
   }

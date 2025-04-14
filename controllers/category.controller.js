@@ -1,17 +1,17 @@
-import Category from "../models/category.model.js";
-import AppError from "../utils/AppError.js";
+import {
+  createNewCategory,
+  deleteCategoryById,
+  findCategoryByName,
+  getPaginatedCategories,
+} from "../services/category.service.js";
 import responseHandler from "../utils/responseHandler.js";
 export const createCategory = async (req, res, next) => {
   try {
     let name = req.body.name.trim().toLowerCase();
-    const existingCategory = await Category.findOne({ where: { name } });
 
-    if (existingCategory) {
-      throw new AppError(409, "Category already exists");
-    }
-    const category = await Category.create({
-      name,
-    });
+    await findCategoryByName(name);
+
+    const category = await createNewCategory(name);
 
     return responseHandler(res, 201, "Category created successfully", {
       category,
@@ -20,21 +20,11 @@ export const createCategory = async (req, res, next) => {
     next(error);
   }
 };
-
 export const getAllCategories = async (req, res, next) => {
   try {
     let { page, limit } = req.query;
 
-    page = parseInt(page) || 1;
-    limit = parseInt(limit) || 10;
-    const offset = (page - 1) * limit;
-
-    const categories = await Category.findAll({
-      limit: limit,
-      offset: offset,
-      order: [["createdAt", "DESC"]],
-      where: {},
-    });
+    const categories = await getPaginatedCategories(page, limit);
 
     return responseHandler(res, 200, "All categories fetched successfully", {
       categories,
@@ -47,9 +37,7 @@ export const deleteCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    await Category.destroy({
-      where: { id: id },
-    });
+    await deleteCategoryById(id);
 
     return responseHandler(res, 200, "Category deleted successfully", {});
   } catch (error) {

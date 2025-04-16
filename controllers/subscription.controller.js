@@ -1,9 +1,14 @@
-import Subscription from "../models/subscription.model.js";
 import AppError from "../utils/AppError.js";
 import responseHandler from "../utils/responseHandler.js";
 
 import { findUserByPk } from "../services/user.service.js";
-import { checkSubscriptionExists, createSubscription } from "../services/subscription.service.js";
+import {
+  checkSubscriptionExists,
+  createSubscription,
+  findAllSubscribers,
+  findAllSubscriptions,
+  unsubscribeAuthor,
+} from "../services/subscription.service.js";
 export const subscribe = async (req, res, next) => {
   try {
     const { author_id } = req.params;
@@ -14,9 +19,8 @@ export const subscribe = async (req, res, next) => {
     }
 
     const user = await findUserByPk(author_id);
-    if (!user || user.role !== "author") {
+    if (user.role !== "author")
       throw new AppError(403, "User is not an author");
-    }
 
     await checkSubscriptionExists(user_id, author_id);
 
@@ -30,11 +34,7 @@ export const subscribe = async (req, res, next) => {
 
 export const getsubscribers = async (req, res, next) => {
   try {
-    const subscribers = await Subscription.findAll({
-      where: {
-        author_id: req.user.id,
-      },
-    });
+    const subscribers = await findAllSubscribers(req.user.id);
     let count = subscribers.length;
     responseHandler(res, 200, "Subscribers fetched successfully", {
       subscribers,
@@ -47,10 +47,7 @@ export const getsubscribers = async (req, res, next) => {
 
 export const getsubscriptions = async (req, res, next) => {
   try {
-    const subscriptions = await Subscription.findAll({
-      where: { user_id: req.user.id },
-    });
-
+    const subscriptions = await findAllSubscriptions(req.user.id);
     responseHandler(res, 200, "Subscriptions fetched successfully", {
       subscriptions,
     });
@@ -61,13 +58,7 @@ export const getsubscriptions = async (req, res, next) => {
 
 export const unsubscribe = async (req, res, next) => {
   try {
-    await Subscription.destroy({
-      where: {
-        author_id: req.params.id,
-        user_id: req.user.id,
-      },
-    });
-
+    await unsubscribeAuthor(req.params.id, req.user.id);
     responseHandler(res, 200, "unsubscribed successfully", {});
   } catch (error) {
     next(error);

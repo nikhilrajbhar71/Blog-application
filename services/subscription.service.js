@@ -1,38 +1,39 @@
 import Subscription from "../models/subscription.model.js";
+import AppError from "../utils/AppError.js";
 
-export const checkSubscriptionExists = async (user_id, author_id) => {
+export const checkSubscriptionExists = async (userId, authorId) => {
   const subscription = await Subscription.findOne({
-    where: { user_id, author_id },
+    where: { userId, authorId },
   });
   if (subscription) {
     throw new AppError(400, "User has already subscribed to this author");
   }
 };
 
-export const createSubscription = async (user_id, author_id) => {
-  return await Subscription.create({ user_id, author_id });
+export const createSubscription = async (userId, authorId) => {
+  return await Subscription.create({ userId, authorId });
 };
-export const findAllSubscribers = async (author_id) => {
+export const findAllSubscribers = async (authorId) => {
   const subscribers = await Subscription.findAll({
     where: {
-      author_id: author_id,
+      authorId,
     },
   });
   return subscribers;
 };
 
-export const findAllSubscriptions = async (user_id) => {
+export const findAllSubscriptions = async (userId) => {
   const subscriptions = await Subscription.findAll({
-    where: { user_id: user_id },
+    where: { userId },
   });
   return subscriptions;
 };
 
-export const unsubscribeAuthor = async (author_id, user_id) => {
+export const unsubscribeAuthor = async (authorId, userId) => {
   await Subscription.destroy({
     where: {
-      author_id,
-      user_id
+      authorId,
+      userId,
     },
   });
 };

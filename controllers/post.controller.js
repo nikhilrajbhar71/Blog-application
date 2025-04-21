@@ -5,16 +5,18 @@ import {
   deletePostById,
   fetchAllPosts,
   findPostByPk,
+  getLikesByPostId,
   toggleCommentLike,
   togglePostLike,
   updatePostStatus,
   verifyPostOwnership,
 } from "../services/post.service.js";
+import { getCommentsByPostId } from "../services/comment.service.js";
 
 export const createPost = async (req, res, next) => {
   try {
-    const { title, content, category_id, isPublished } = req.body;
-    const author_id = req.user.id;
+    const { title, content, categoryId, isPublished } = req.body;
+    const authorId = req.user.id;
     if (!req.file) {
       return responseHandler(res, 400, "Banner image is required");
     }
@@ -23,8 +25,8 @@ export const createPost = async (req, res, next) => {
       title,
       content,
       bannerImage,
-      author_id,
-      category_id,
+      authorId,
+      categoryId,
       isPublished,
     });
 
@@ -43,8 +45,7 @@ export const updateStatus = async (req, res, next) => {
     const { id } = req.params;
     const post = await findPostByPk(id);
 
-    verifyPostAuthor(post, req.user);
-
+    verifyPostOwnership(post, req.user);
     await updatePostStatus(id);
 
     return responseHandler(res, 200, "Post status updated successfully", {});
@@ -57,7 +58,7 @@ export const deletePost = async (req, res, next) => {
   try {
     const post = await findPostByPk(req.params.id);
 
-    verifyPostOwnership(post, req.user.id);
+    verifyPostOwnership(post, req.user);
 
     await deletePostById(req.params.id);
 
@@ -83,10 +84,18 @@ export const getAllPost = async (req, res, next) => {
 export const getPost = async (req, res, next) => {
   try {
     const id = req.params.id;
-    //TODO : we can send all related likes and comments
-    const post = await findPostByPk(id);
 
-    return responseHandler(res, 200, "post fetched successfully", { post });
+    const [post, comments, likes] = await Promise.all([
+      findPostByPk(id),
+      getCommentsByPostId(id),
+      getLikesByPostId(id),
+    ]);
+
+    return responseHandler(res, 200, "post fetched successfully", {
+      post,
+      comments,
+      likes,
+    });
   } catch (error) {
     next(error);
   }
@@ -95,9 +104,9 @@ export const getPost = async (req, res, next) => {
 export const likeComment = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const user_id = req.user.id;
+    const userId = req.user.id;
 
-    const { liked } = await toggleCommentLike(id, user_id);
+    const { liked } = await toggleCommentLike(id, userId);
 
     const message = liked
       ? "comment liked successfully"

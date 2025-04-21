@@ -13,7 +13,8 @@ export const subscribe = async (req, res, next) => {
   try {
     const { author_id } = req.params;
     const user_id = req.user.id;
-
+    console.log("author id" + JSON.stringify(author_id));
+    console.log("user id " + JSON.stringify(user_id));
     if (author_id == user_id) {
       throw new AppError(400, "User can't subscribe to himself");
     }

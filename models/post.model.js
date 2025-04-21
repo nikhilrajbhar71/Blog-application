@@ -37,10 +37,10 @@ const Post = sequelize.define(
   }
 );
 
-Post.belongsTo(User, { foreignKey: "author_id", onDelete: "SET NULL" });
-User.hasMany(Post, { foreignKey: "author_id" });
+Post.belongsTo(User, { foreignKey: "authorId", onDelete: "SET NULL" });
+User.hasMany(Post, { foreignKey: "authorId" });
 
-Post.belongsTo(Category, { foreignKey: "category_id", onDelete: "SET NULL" });
-Category.hasMany(Post, { foreignKey: "category_id" });
+Post.belongsTo(Category, { foreignKey: "categoryId", onDelete: "SET NULL" });
+Category.hasMany(Post, { foreignKey: "categoryId" });
 
 export default Post;

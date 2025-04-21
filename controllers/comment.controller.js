@@ -3,21 +3,21 @@ import {
   createReplyOnComment,
   deleteCommentById,
   findCommentById,
-  findCommentByPk,
   getCommentsByPostId,
   getRepliesByParentId,
   verifyCommentOwnerShip,
 } from "../services/comment.service.js";
+import { findPostByPk } from "../services/post.service.js";
 
 import responseHandler from "../utils/responseHandler.js";
 
 export const comment = async (req, res, next) => {
   try {
-    const post_id = req.params.id;
-    const user_id = req.user.id;
+    const postId = req.params.id;
+    const userId = req.user.id;
     const { comment } = req.body;
-
-    const newComment = await createComment(post_id, comment, user_id);
+    await findPostByPk(postId);
+    const newComment = await createComment(postId, comment, userId);
 
     return responseHandler(res, 200, "Comment added successfully", {
       comment: newComment,
@@ -58,13 +58,13 @@ export const deleteComment = async (req, res, next) => {
 
 export const ReplyOnComment = async (req, res, next) => {
   try {
-    const parent_comment_id = req.params.id;
-    const user_id = req.user.id;
+    const parentCommentId = req.params.id;
+    const userId = req.user.id;
     const { comment } = req.body;
 
-    await findCommentById(parent_comment_id);
+    await findCommentById(parentCommentId);
 
-    await createReplyOnComment({ parent_comment_id, comment, user_id });
+    await createReplyOnComment({ parentCommentId, comment, userId });
 
     return responseHandler(res, 200, "Comment added successfully", {});
   } catch (error) {
@@ -74,9 +74,9 @@ export const ReplyOnComment = async (req, res, next) => {
 
 export const getAllReplies = async (req, res, next) => {
   try {
-    const parent_comment_id = req.params.id;
-
-    const replies = await getRepliesByParentId(parent_comment_id);
+    const parentCommentId = req.params.id;
+    await findCommentById(parentCommentId);
+    const replies = await getRepliesByParentId(parentCommentId);
 
     return responseHandler(res, 200, "Replies fetched successfully", {
       replies,

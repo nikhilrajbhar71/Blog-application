@@ -8,16 +8,16 @@ export const createNewPost = async ({
   title,
   content,
   bannerImage,
-  author_id,
-  category_id,
+  authorId,
+  categoryId,
   isPublished,
 }) => {
   return await Post.create({
     title,
     content,
     bannerImage,
-    author_id,
-    category_id,
+    authorId,
+    categoryId,
     isPublished,
   });
 };
@@ -51,10 +51,13 @@ export const fetchAllPosts = async (page, limit, category, author) => {
     isDeleted: false,
   };
 
-  if (category) whereCondition.category_id = category;
-  if (author) whereCondition.author_id = author;
+  if (category) whereCondition.categoryId = category;
+  if (author) whereCondition.authorId = author;
 
-  return await Post.findAll({
+  const totalCount = await Post.count({ where: whereCondition });
+  const totalPages = Math.ceil(totalCount / limit);
+
+  const posts = await Post.findAll({
     limit,
     offset,
     where: whereCondition,
@@ -62,7 +65,7 @@ export const fetchAllPosts = async (page, limit, category, author) => {
     include: [
       {
         model: Comment,
-        attributes: ["id", "comment", "user_id", "createdAt"],
+        attributes: ["id", "comment", "userId", "createdAt"],
       },
       {
         model: Like,
@@ -70,10 +73,25 @@ export const fetchAllPosts = async (page, limit, category, author) => {
       },
     ],
   });
+
+  const formattedPosts = posts.map((post) => {
+    const postJson = post.toJSON();
+    return {
+      ...postJson,
+      likesCount: postJson.Likes?.length || 0,
+      commentsCount: postJson.Comments?.length || 0,
+    };
+  });
+
+  return {
+    posts: formattedPosts,
+    currentPage: page,
+    totalPages,
+  };
 };
 
 export const toggleCommentLike = async (commentId, userId) => {
-  const comment = await Comment.findOne({ where: { id: commentId } });
+  const comment = await Comment.findByPk(commentId);
   if (!comment) throw new AppError(404, "comment not found");
 
   const alreadyLiked = await Like.findOne({ where: { commentId, userId } });
@@ -83,12 +101,13 @@ export const toggleCommentLike = async (commentId, userId) => {
     return { liked: false };
   }
 
-  await Like.create({ commentId, userId });
+   await Like.create({ commentId, userId });
+
   return { liked: true };
 };
 
 export const togglePostLike = async (postId, userId) => {
-  const post = await Post.findOne({ where: { id: postId } });
+  const post = await Post.findByPk(postId);
   if (!post) throw new AppError(404, "post not found");
 
   const alreadyLiked = await Like.findOne({ where: { postId, userId } });
@@ -103,7 +122,13 @@ export const togglePostLike = async (postId, userId) => {
 };
 
 export const verifyPostOwnership = (post, userId) => {
-  if (!post || post.author_id !== userId) {
+  if (!post || post.authorId !== userId.id) {
     throw new AppError(401, "Unauthorized to perform this action");
   }
+};
+
+export const getLikesByPostId = async (postId) => {
+  return await Like.findAll({
+    where: { postId },
+  });
 };

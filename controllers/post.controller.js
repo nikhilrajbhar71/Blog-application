@@ -75,7 +75,7 @@ export const getAllPost = async (req, res, next) => {
     const posts = await fetchAllPosts(page, limit, category, author);
 
     return responseHandler(res, 200, "All posts fetched successfully", {
-      posts,
+      ...posts,
     });
   } catch (error) {
     next(error);

@@ -1,8 +1,10 @@
 import express from "express";
 import {
   deleteUserProfile,
+  forgotPassword,
   getUserProfile,
   refreshToken,
+  resetPassword,
   userLogin,
   userRegister,
 } from "../controllers/user.controller.js";
@@ -19,5 +21,7 @@ router.post("/login", validateUserLogin, userLogin);
 router.get("/refresh", verifyRefreshToken, refreshToken);
 router.get("/:id", validateGetPost, getUserProfile);
 router.delete("/", authenticateUser, deleteUserProfile);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
 export default router;

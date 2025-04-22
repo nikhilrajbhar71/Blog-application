@@ -1,12 +1,20 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
+
 import responseHandler from "../utils/responseHandler.js";
 import { jwtSignHelper } from "../utils/jwtSignHelper.js";
 import {
   createUser,
   deleteUser,
+  findResetToken,
   findUserByEmail,
   findUserByPk,
+  generateResetToken,
+  hashPassword,
 } from "../services/user.service.js";
+import User from "../models/user.model.js";
+import { sendResetEmail } from "../utils/sendResetEmail.js";
+import PasswordResetToken from "../models/passwordResetToken.model.js";
 
 export const userRegister = async (req, res, next) => {
   try {
@@ -17,8 +25,7 @@ export const userRegister = async (req, res, next) => {
       return responseHandler(res, 409, "Email already exists");
     }
 
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await hashPassword(password);
 
     const user = await createUser(name, email, hashedPassword, role);
 
@@ -92,6 +99,45 @@ export const deleteUserProfile = async (req, res, next) => {
   try {
     await deleteUser(req.user.id);
     return responseHandler(res, 200, "User profile deleted successfully", {});
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    await findUserByEmail(email);
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 3600000);
+
+    await generateResetToken(email, token, expiresAt);
+
+    await sendResetEmail(email, token);
+
+    responseHandler(res, 401, "created reset token", {});
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    const tokenEntry = await findResetToken(token);
+
+    const user = await findUserByEmail(tokenEntry.email);
+
+    user.password = await hashPassword(newPassword);
+    await user.save();
+
+    await PasswordResetToken.destroy({ where: { token } });
+
+    return responseHandler(res, 200, "Password changed successfully", {});
   } catch (error) {
     next(error);
   }

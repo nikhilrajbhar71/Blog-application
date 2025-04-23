@@ -1,3 +1,4 @@
+import CommentResource from "../resources/comment.resource.js";
 import {
   createComment,
   createReplyOnComment,
@@ -33,9 +34,12 @@ export const getAllComment = async (req, res, next) => {
 
     const comments = await getCommentsByPostId(post_id);
 
-    return responseHandler(res, 200, "Comments fetched successfully", {
-      comments,
-    });
+    return responseHandler(
+      res,
+      200,
+      "Comments fetched successfully",
+      CommentResource.collection(comments)
+    );
   } catch (error) {
     next(error);
   }
@@ -78,9 +82,12 @@ export const getAllReplies = async (req, res, next) => {
     await findCommentById(parentCommentId);
     const replies = await getRepliesByParentId(parentCommentId);
 
-    return responseHandler(res, 200, "Replies fetched successfully", {
-      replies,
-    });
+    return responseHandler(
+      res,
+      200,
+      "Replies fetched successfully",
+      CommentResource.collection(replies)
+    );
   } catch (error) {
     next(error);
   }

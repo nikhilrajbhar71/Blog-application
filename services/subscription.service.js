@@ -15,11 +15,12 @@ export const createSubscription = async (userId, authorId) => {
 };
 export const findAllSubscribers = async (authorId) => {
   const subscribers = await Subscription.findAll({
-    where: {
-      authorId,
-    },
+    where: { authorId },
   });
-  return subscribers;
+
+  const count = subscribers.length;
+
+  return { subscribers, count }; 
 };
 
 export const findAllSubscriptions = async (userId) => {

@@ -1,3 +1,4 @@
+import CategoryResource from "../resources/category.resource.js";
 import {
   createNewCategory,
   deleteCategoryById,
@@ -26,9 +27,12 @@ export const getAllCategories = async (req, res, next) => {
 
     const categories = await getPaginatedCategories(page, limit);
 
-    return responseHandler(res, 200, "All categories fetched successfully", {
-      categories,
-    });
+    return responseHandler(
+      res,
+      200,
+      "All categories fetched successfully",
+      CategoryResource.collection(categories)
+    );
   } catch (error) {
     next(error);
   }

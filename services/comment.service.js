@@ -10,9 +10,10 @@ export const createComment = async (postId, comment, userId) => {
 };
 
 export const getCommentsByPostId = async (postId) => {
-  return await Comment.findAll({
+  const comments = await Comment.findAll({
     where: { postId },
   });
+  return comments;
 };
 
 export const findCommentById = async (id) => {
@@ -28,7 +29,7 @@ export const deleteCommentById = async (id) => {
 };
 
 export const findCommentByPk = async (id) => {
-  const comment =  await Comment.findByPk(id);
+  const comment = await Comment.findByPk(id);
 };
 
 export const createReplyOnComment = async ({

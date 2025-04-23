@@ -1,5 +1,5 @@
-import bcrypt from "bcrypt";
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 
 import responseHandler from "../utils/responseHandler.js";
 import { jwtSignHelper } from "../utils/jwtSignHelper.js";
@@ -15,6 +15,7 @@ import {
 import User from "../models/user.model.js";
 import { sendResetEmail } from "../utils/sendResetEmail.js";
 import PasswordResetToken from "../models/passwordResetToken.model.js";
+import UserResource from "../resources/user.resource.js";
 
 export const userRegister = async (req, res, next) => {
   try {
@@ -22,16 +23,19 @@ export const userRegister = async (req, res, next) => {
 
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return responseHandler(res, 409, "Email already exists");
+      return responseHandler(res, 409, "Email already exists", {});
     }
 
     const hashedPassword = await hashPassword(password);
 
     const user = await createUser(name, email, hashedPassword, role);
 
-    return responseHandler(res, 201, "User registered successfully", {
-      user,
-    });
+    return responseHandler(
+      res,
+      201,
+      "User registered successfully",
+      new UserResource(user).exec()
+    );
   } catch (error) {
     next(error);
   }
@@ -89,7 +93,14 @@ export const getUserProfile = async (req, res, next) => {
     if (!user) {
       return responseHandler(res, 404, "user not found", {});
     }
-    return responseHandler(res, 200, "User profile fetched successfully", user);
+    console.log("test " + JSON.stringify(user));
+
+    return responseHandler(
+      res,
+      200,
+      "User profile fetched successfully",
+      new UserResource(user).exec()
+    );
   } catch (error) {
     next(error);
   }

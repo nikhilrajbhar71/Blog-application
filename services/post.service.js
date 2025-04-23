@@ -3,6 +3,10 @@ import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
 import Post from "../models/post.model.js";
 import AppError from "../utils/AppError.js";
+import PostResource from "../resources/post.resource.js";
+import { getCommentsByPostId } from "./comment.service.js";
+import CommentResource from "../resources/comment.resource.js";
+import LikeResource from "../resources/like.resource.js";
 
 export const createNewPost = async ({
   title,
@@ -84,7 +88,7 @@ export const fetchAllPosts = async (page, limit, category, author) => {
   });
 
   return {
-    posts: formattedPosts,
+    posts: PostResource.collection(formattedPosts),
     currentPage: page,
     totalPages,
   };
@@ -101,7 +105,7 @@ export const toggleCommentLike = async (commentId, userId) => {
     return { liked: false };
   }
 
-   await Like.create({ commentId, userId });
+  await Like.create({ commentId, userId });
 
   return { liked: true };
 };
@@ -131,4 +135,25 @@ export const getLikesByPostId = async (postId) => {
   return await Like.findAll({
     where: { postId },
   });
+};
+
+
+
+
+export const getPostWithDetails = async (id) => {
+  const [post, comments, likes] = await Promise.all([
+    findPostByPk(id),
+    getCommentsByPostId(id),
+    getLikesByPostId(id),
+  ]);
+
+  const formattedPost = new PostResource(post).exec();
+  const formattedComments = CommentResource.collection(comments);
+  const formattedLikes = LikeResource.collection(likes);
+
+  return {
+    post: formattedPost,
+    likes: formattedLikes,
+    comments: formattedComments,
+  };
 };

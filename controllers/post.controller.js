@@ -6,12 +6,14 @@ import {
   fetchAllPosts,
   findPostByPk,
   getLikesByPostId,
+  getPostWithDetails,
   toggleCommentLike,
   togglePostLike,
   updatePostStatus,
   verifyPostOwnership,
 } from "../services/post.service.js";
 import { getCommentsByPostId } from "../services/comment.service.js";
+import PostResource from "../resources/post.resource.js";
 
 export const createPost = async (req, res, next) => {
   try {
@@ -74,6 +76,7 @@ export const getAllPost = async (req, res, next) => {
 
     const posts = await fetchAllPosts(page, limit, category, author);
 
+    // doubt : post.service is return json, that's why used postResource inside post.service
     return responseHandler(res, 200, "All posts fetched successfully", {
       ...posts,
     });
@@ -85,16 +88,10 @@ export const getPost = async (req, res, next) => {
   try {
     const id = req.params.id;
 
-    const [post, comments, likes] = await Promise.all([
-      findPostByPk(id),
-      getCommentsByPostId(id),
-      getLikesByPostId(id),
-    ]);
+    const postDetails = await getPostWithDetails(id);
 
     return responseHandler(res, 200, "post fetched successfully", {
-      post,
-      comments,
-      likes,
+      postDetails,
     });
   } catch (error) {
     next(error);

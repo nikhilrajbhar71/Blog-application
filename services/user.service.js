@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import PasswordResetToken from "../models/passwordResetToken.model.js";
 import AppError from "../utils/AppError.js";
 import { Op } from "sequelize";
+import bcrypt from "bcrypt";
 
 export const findUserByEmail = async (email) => {
   const user = await User.findOne({ where: { email } });
@@ -20,9 +21,7 @@ export const createUser = async (name, email, password, role) => {
 };
 
 export const findUserByPk = async (id) => {
-  const user = await User.findByPk(id, {
-    attributes: { exclude: ["password"] },
-  });
+  const user = await User.findByPk(id);
 
   return user;
 };

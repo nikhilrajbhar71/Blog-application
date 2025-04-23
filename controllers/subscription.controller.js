@@ -9,6 +9,7 @@ import {
   findAllSubscriptions,
   unsubscribeAuthor,
 } from "../services/subscription.service.js";
+import SubscriptionResource from "../resources/subscription.resource.js";
 export const subscribe = async (req, res, next) => {
   try {
     const { author_id } = req.params;
@@ -35,10 +36,9 @@ export const subscribe = async (req, res, next) => {
 
 export const getsubscribers = async (req, res, next) => {
   try {
-    const subscribers = await findAllSubscribers(req.user.id);
-    let count = subscribers.length;
+    const { subscribers, count } = await findAllSubscribers(req.user.id);
     responseHandler(res, 200, "Subscribers fetched successfully", {
-      subscribers,
+      Subscribers: SubscriptionResource.collection(subscribers),
       count,
     });
   } catch (error) {
@@ -49,9 +49,12 @@ export const getsubscribers = async (req, res, next) => {
 export const getsubscriptions = async (req, res, next) => {
   try {
     const subscriptions = await findAllSubscriptions(req.user.id);
-    responseHandler(res, 200, "Subscriptions fetched successfully", {
-      subscriptions,
-    });
+    responseHandler(
+      res,
+      200,
+      "Subscriptions fetched successfully",
+      SubscriptionResource.collection(subscriptions)
+    );
   } catch (error) {
     next(error);
   }

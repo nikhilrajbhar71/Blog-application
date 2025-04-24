@@ -1,29 +1,41 @@
-import { Sequelize } from "sequelize";
-import Comment from "../models/comment.model.js";
-import Like from "../models/like.model.js";
-import Post from "../models/post.model.js";
-import AppError from "../utils/AppError.js";
 import { notifySubscribers } from "../utils/notifySubscriber.js";
 import responseHandler from "../utils/responseHandler.js";
+import {
+  createNewPost,
+  deletePostById,
+  fetchAllPosts,
+  findPostByPk,
+  getLikesByPostId,
+  getPostWithDetails,
+  toggleCommentLike,
+  togglePostLike,
+  updatePostStatus,
+  verifyPostOwnership,
+} from "../services/post.service.js";
+import { getCommentsByPostId } from "../services/comment.service.js";
+import PostResource from "../resources/post.resource.js";
 
 export const createPost = async (req, res, next) => {
   try {
-    const { title, content, category_id, isPublished } = req.body;
-    const author_id = req.user.id;
-    const banner_image = `/uploads/${req.file.filename}`;
-    const result = await Post.create({
+    const { title, content, categoryId, isPublished } = req.body;
+    const authorId = req.user.id;
+    if (!req.file) {
+      return responseHandler(res, 400, "Banner image is required");
+    }
+    const bannerImage = req.file.location;
+    const post = await createNewPost({
       title,
       content,
-      banner_image,
-      author_id,
-      category_id,
+      bannerImage,
+      authorId,
+      categoryId,
       isPublished,
     });
 
     notifySubscribers(req.user, title, content);
 
     responseHandler(res, 201, "Post created successfully", {
-      post: result,
+      post,
     });
   } catch (error) {
     next(error);
@@ -33,16 +45,10 @@ export const createPost = async (req, res, next) => {
 export const updateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const post = await Post.findByPk(id);
+    const post = await findPostByPk(id);
 
-    if (post.author_id != req.user.id) {
-      throw new AppError(401, "Unauthorized to update the post");
-    }
-
-    const updatedPost = await Post.update(
-      { isPublished: Sequelize.literal("NOT isPublished") },
-      { where: { id } }
-    );
+    verifyPostOwnership(post, req.user);
+    await updatePostStatus(id);
 
     return responseHandler(res, 200, "Post status updated successfully", {});
   } catch (error) {
@@ -52,19 +58,11 @@ export const updateStatus = async (req, res, next) => {
 
 export const deletePost = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const post = await Post.findByPk(id);
-    if (!post) {
-      throw new AppError(404, "Post not found");
-    }
-    if (post.author_id != req.user.id) {
-      throw new AppError(401, "Unauthorized to delete post");
-    }
+    const post = await findPostByPk(req.params.id);
 
-    const deletedPost = await Post.update(
-      { isDeleted: true },
-      { where: { id } }
-    );
+    verifyPostOwnership(post, req.user);
+
+    await deletePostById(req.params.id);
 
     return responseHandler(res, 200, "Post status deleted successfully", {});
   } catch (error) {
@@ -74,38 +72,27 @@ export const deletePost = async (req, res, next) => {
 
 export const getAllPost = async (req, res, next) => {
   try {
-    let { page, limit } = req.query;
+    let { page, limit, category, author } = req.query;
 
-    page = parseInt(page) || 1;
-    limit = parseInt(limit) || 10;
-    const offset = (page - 1) * limit;
+    const posts = await fetchAllPosts(page, limit, category, author);
 
-    const posts = await Post.findAll({
-      limit: limit,
-      offset: offset,
-      order: [["createdAt", "DESC"]],
-      where: {
-        isPublished: true,
-        isDeleted: false,
-      },
-    });
-
+    // doubt : post.service is return json, that's why used postResource inside post.service
     return responseHandler(res, 200, "All posts fetched successfully", {
-      posts,
+      ...posts,
     });
   } catch (error) {
     next(error);
   }
 };
-
 export const getPost = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const post = await Post.findByPk(id);
-    if (!post) {
-      throw new AppError(404, "post not found");
-    }
-    return responseHandler(res, 200, "post fetched successfully", { post });
+
+    const postDetails = await getPostWithDetails(id);
+
+    return responseHandler(res, 200, "post fetched successfully", {
+      postDetails,
+    });
   } catch (error) {
     next(error);
   }
@@ -114,35 +101,14 @@ export const getPost = async (req, res, next) => {
 export const likeComment = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const user_id = req.user.id;
+    const userId = req.user.id;
 
-    const comment = await Comment.findOne({
-      where: { id: id },
-    });
-    if (!comment) {
-      throw new AppError(404, "comment not found");
-    }
-    const CommentLikedAlready = await Like.findOne({
-      where: { commentId: id, userId: user_id },
-    });
+    const { liked } = await toggleCommentLike(id, userId);
 
-    if (CommentLikedAlready) {
-      const deletedLike = await Like.destroy({
-        where: {
-          userId: user_id,
-          commentId: id,
-        },
-      });
-
-      return responseHandler(res, 200, "comment unliked successfully", {});
-    }
-
-    const likedComment = await Like.create({
-      commentId: id,
-      userId: user_id,
-    });
-
-    return responseHandler(res, 200, "comment liked successfully", {});
+    const message = liked
+      ? "comment liked successfully"
+      : "comment unliked successfully";
+    return responseHandler(res, 200, message, {});
   } catch (error) {
     next(error);
   }
@@ -151,34 +117,13 @@ export const likePost = async (req, res, next) => {
   try {
     const { id } = req.params;
     const user_id = req.user.id;
-    const post = await Post.findOne({
-      where: { id: id },
-    });
-    if (!post) {
-      throw new AppError(404, "post not found");
-    }
 
-    const PostLikedAlready = await Like.findOne({
-      where: { postId: id, userId: user_id },
-    });
+    const { liked } = await togglePostLike(id, user_id);
 
-    if (PostLikedAlready) {
-      await Like.destroy({
-        where: {
-          userId: user_id,
-          postId: id,
-        },
-      });
-
-      return responseHandler(res, 200, "Post unliked successfully", {});
-    }
-
-    const likedPost = await Like.create({
-      postId: id,
-      userId: user_id,
-    });
-
-    return responseHandler(res, 201, "Post liked successfully", {});
+    const message = liked
+      ? "Post liked successfully"
+      : "Post unliked successfully";
+    return responseHandler(res, liked ? 201 : 200, message, {});
   } catch (error) {
     next(error);
   }

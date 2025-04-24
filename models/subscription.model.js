@@ -20,16 +20,16 @@ const Subscription = sequelize.define(
 User.belongsToMany(User, {
   as: "Authors",
   through: Subscription,
-  foreignKey: "user_id",
-  otherKey: "author_id",
+  foreignKey: "userId",
+  otherKey: "authorId",
   onDelete: "CASCADE",
 });
 
 User.belongsToMany(User, {
   as: "Subscribers",
   through: Subscription,
-  foreignKey: "author_id",
-  otherKey: "user_id",
+  foreignKey: "authorId",
+  otherKey: "userId",
   onDelete: "CASCADE",
 });
 

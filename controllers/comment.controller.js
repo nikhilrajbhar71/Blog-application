@@ -1,21 +1,27 @@
-import Comment from "../models/comment.model.js";
+import CommentResource from "../resources/comment.resource.js";
+import {
+  createComment,
+  createReplyOnComment,
+  deleteCommentById,
+  findCommentById,
+  getCommentsByPostId,
+  getRepliesByParentId,
+  verifyCommentOwnerShip,
+} from "../services/comment.service.js";
+import { findPostByPk } from "../services/post.service.js";
 
 import responseHandler from "../utils/responseHandler.js";
 
 export const comment = async (req, res, next) => {
   try {
-    const post_id = req.params.id;
-    const user_id = req.user.id;
+    const postId = req.params.id;
+    const userId = req.user.id;
     const { comment } = req.body;
-
-    const newcomment = await Comment.create({
-      post_id,
-      comment,
-      user_id,
-    });
+    await findPostByPk(postId);
+    const newComment = await createComment(postId, comment, userId);
 
     return responseHandler(res, 200, "Comment added successfully", {
-      comment: newcomment,
+      comment: newComment,
     });
   } catch (error) {
     next(error);
@@ -26,40 +32,27 @@ export const getAllComment = async (req, res, next) => {
   try {
     const post_id = req.params.id;
 
-    const comments = await Comment.findAll({
-      where: {
-        post_id: post_id,
-      },
-    });
+    const comments = await getCommentsByPostId(post_id);
 
-    return responseHandler(res, 200, "Comments fetched successfully", {
-      comments,
-    });
+    return responseHandler(
+      res,
+      200,
+      "Comments fetched successfully",
+      CommentResource.collection(comments)
+    );
   } catch (error) {
     next(error);
   }
 };
 export const deleteComment = async (req, res, next) => {
-  // TODO : author can delete comments on his posts as well
   try {
     const commentId = req.params.id;
-    const comment = await Comment.findOne({
-      where: {
-        id: commentId,
-      },
-    });
-    if (!comment) {
-      return responseHandler(res, 404, "comment not found", {});
-    }
+    const comment = await findCommentById(commentId);
 
-    if (req.user.id != comment.user_id) {
-      return responseHandler(res, 401, "Unauthorized", {});
-    }
-    await Comment.destroy({
-      where: {
-        id: commentId,
-      },
-    });
+    // TODO: Allow post author to delete comments on their post
+    verifyCommentOwnerShip(req.user.id, comment);
+
+    await deleteCommentById(commentId);
 
     return responseHandler(res, 200, "Comment deleted successfully", {});
   } catch (error) {
@@ -69,18 +62,13 @@ export const deleteComment = async (req, res, next) => {
 
 export const ReplyOnComment = async (req, res, next) => {
   try {
-    const parent_comment_id = req.params.id;
-    const user_id = req.user.id;
+    const parentCommentId = req.params.id;
+    const userId = req.user.id;
     const { comment } = req.body;
-    const parentComment = await Comment.findByPk(parent_comment_id);
-    if (!parentComment) {
-      return responseHandler(res, 404, "comment not found", {});
-    }
-    await Comment.create({
-      parent_comment_id,
-      comment,
-      user_id,
-    });
+
+    await findCommentById(parentCommentId);
+
+    await createReplyOnComment({ parentCommentId, comment, userId });
 
     return responseHandler(res, 200, "Comment added successfully", {});
   } catch (error) {
@@ -90,17 +78,16 @@ export const ReplyOnComment = async (req, res, next) => {
 
 export const getAllReplies = async (req, res, next) => {
   try {
-    const parent_comment_id = req.params.id;
+    const parentCommentId = req.params.id;
+    await findCommentById(parentCommentId);
+    const replies = await getRepliesByParentId(parentCommentId);
 
-    const replies = await Comment.findAll({
-      where: {
-        parent_comment_id: parent_comment_id,
-      },
-    });
-
-    return responseHandler(res, 200, "Replies fetched successfully", {
-      replies,
-    });
+    return responseHandler(
+      res,
+      200,
+      "Replies fetched successfully",
+      CommentResource.collection(replies)
+    );
   } catch (error) {
     next(error);
   }

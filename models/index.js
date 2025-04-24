@@ -5,6 +5,7 @@ import Post from "../models/post.model.js";
 import Comment from "../models/comment.model.js";
 import Like from "../models/like.model.js";
 import Subscription from "../models/subscription.model.js";
+import PasswordResetToken from "../models/passwordResetToken.model.js";
 
 const syncDatabase = async () => {
   try {
@@ -15,4 +16,13 @@ const syncDatabase = async () => {
   }
 };
 
-export { User, Category, Post, Comment, Like, Subscription, syncDatabase };
+export {
+  User,
+  Category,
+  Post,
+  Comment,
+  Like,
+  Subscription,
+  PasswordResetToken,
+  syncDatabase,
+};

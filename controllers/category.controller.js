@@ -14,7 +14,7 @@ export const createCategory = async (req, res, next) => {
 
     const category = await createNewCategory(name);
 
-    return responseHandler(res, 201, "Category created successfully", {
+    return responseHandler(res, 200, "Category created successfully", {
       category,
     });
   } catch (error) {

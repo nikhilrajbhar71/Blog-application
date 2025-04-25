@@ -19,8 +19,7 @@ const emailSender = async (toEmail, subject, body) => {
 
     return info;
   } catch (err) {
-    console.error("Error sending email:", err);
-    throw err;
+    next(err);
   }
 };
 

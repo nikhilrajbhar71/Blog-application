@@ -1,9 +1,11 @@
 import { param, body, validationResult } from "express-validator";
+import responseHandler from "../../../utils/responseHandler.js";
+import { throwValidationError } from "../throwValidationError.js";
 
 function handleValidationErrors(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    throwValidationError(res, errors);
   }
   next();
 }

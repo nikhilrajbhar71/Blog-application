@@ -34,9 +34,12 @@ export const createPost = async (req, res, next) => {
 
     notifySubscribers(req.user, title, content);
 
-    responseHandler(res, 200, "Post created successfully", {
-      post,
-    });
+    responseHandler(
+      res,
+      200,
+      "Post created successfully",
+      new PostResource(post).exec()
+    );
   } catch (error) {
     next(error);
   }

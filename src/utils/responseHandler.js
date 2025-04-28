@@ -1,5 +1,5 @@
-import { httpCodes } from "./httpCodes.js";
-import serverErrorCodes from "./serverErrorCodes.js";
+import { httpCodes, serverErrorCodes } from "../config/constants";
+
 const responseHandler = (res, statusCode, message, data = {}, error = null) => {
   let status = statusCode === httpCodes.OK ? statusCode : httpCodes.BAD;
   if (serverErrorCodes.includes(statusCode)) {

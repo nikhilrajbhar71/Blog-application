@@ -1,5 +1,5 @@
-import { httpCodes } from "../utils/httpCodes.js";
-import serverErrorCodes from "../utils/serverErrorCodes.js";
+import { httpCodes, serverErrorCodes } from "../config/constants";
+
 const errorMiddleware = (err, req, res, next) => {
   console.error("Error:", err.message || err);
   const message = err.message || "Internal Server Error";

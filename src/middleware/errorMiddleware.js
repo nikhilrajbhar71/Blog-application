@@ -1,4 +1,4 @@
-import { httpCodes, serverErrorCodes } from "../config/constants";
+import { httpCodes, serverErrorCodes } from "../config/constants.js";
 
 const errorMiddleware = (err, req, res, next) => {
   console.error("Error:", err.message || err);

@@ -7,12 +7,12 @@ import {
   resetPassword,
   userLogin,
   userRegister,
-} from "../../controllers/user.controller.js";
-import { validateUserRegister } from "../../middleware/validators/users/registerValidator.js";
-import { validateUserLogin } from "../../middleware/validators/users/loginValidator.js";
-import verifyRefreshToken from "../../middleware/verifyRefreshToken.js";
-import { validateGetPost } from "../../middleware/validators/posts/getPostValidator.js";
-import authenticateUser from "../../middleware/authenticateUser.js";
+} from "../controllers/user.controller.js";
+import { validateUserRegister } from "../middleware/validators/users/registerValidator.js";
+import { validateUserLogin } from "../middleware/validators/users/loginValidator.js";
+import verifyRefreshToken from "../middleware/verifyRefreshToken.js";
+import { validateGetPost } from "../middleware/validators/posts/getPostValidator.js";
+import authenticateUser from "../middleware/authenticateUser.js";
 
 const router = express.Router();
 

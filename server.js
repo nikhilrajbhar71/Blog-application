@@ -1,6 +1,6 @@
 import app from "./app.js";
-import { dbConnection } from "./config/db.js";
-import { syncDatabase } from "./models/index.js";
+import { dbConnection } from "./src/config/db.js";
+import { syncDatabase } from "./src/models/index.js";
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, async () => {

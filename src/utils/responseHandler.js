@@ -1,7 +1,10 @@
 import { httpCodes } from "./httpCodes.js";
-
+import serverErrorCodes from "./serverErrorCodes.js";
 const responseHandler = (res, statusCode, message, data = {}, error = null) => {
-  const status = statusCode === httpCodes.OK ? statusCode : httpCodes.BAD;
+  let status = statusCode === httpCodes.OK ? statusCode : httpCodes.BAD;
+  if (serverErrorCodes.includes(statusCode)) {
+    status = statusCode;
+  }
   const response = { message, statusCode, data, error };
   return res.status(status).json(response);
 };

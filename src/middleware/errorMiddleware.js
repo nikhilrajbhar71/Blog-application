@@ -1,10 +1,13 @@
 import { httpCodes } from "../utils/httpCodes.js";
-
+import serverErrorCodes from "../utils/serverErrorCodes.js";
 const errorMiddleware = (err, req, res, next) => {
   console.error("Error:", err.message || err);
   const message = err.message || "Internal Server Error";
   const statusCode = err.statusCode || 500;
-  const status = statusCode === httpCodes.OK ? statusCode : httpCodes.BAD;
+  let status = statusCode === httpCodes.OK ? statusCode : httpCodes.BAD;
+  if (serverErrorCodes.includes(statusCode)) {
+    status = statusCode;
+  }
   const response = {
     statusCode: statusCode,
     message,

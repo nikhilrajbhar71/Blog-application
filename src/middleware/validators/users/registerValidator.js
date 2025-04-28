@@ -1,4 +1,5 @@
 import { body, validationResult } from "express-validator";
+import { throwValidationError } from "../throwValidationError.js";
 
 export const validateUserRegister = [
   body("email").isEmail().withMessage("Invalid email format"),
@@ -13,7 +14,7 @@ export const validateUserRegister = [
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      throwValidationError(res, errors);
     }
     next();
   },

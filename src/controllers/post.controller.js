@@ -34,9 +34,12 @@ export const createPost = async (req, res, next) => {
 
     notifySubscribers(req.user, title, content);
 
-    responseHandler(res, 201, "Post created successfully", {
-      post,
-    });
+    responseHandler(
+      res,
+      200,
+      "Post created successfully",
+      new PostResource(post).exec()
+    );
   } catch (error) {
     next(error);
   }
@@ -123,7 +126,7 @@ export const likePost = async (req, res, next) => {
     const message = liked
       ? "Post liked successfully"
       : "Post unliked successfully";
-    return responseHandler(res, liked ? 201 : 200, message, {});
+    return responseHandler(res, liked ? 200 : 200, message, {});
   } catch (error) {
     next(error);
   }

@@ -12,7 +12,7 @@ import {
   generateResetToken,
   hashPassword,
 } from "../services/user.service.js";
-import User from "../models/user.model.js";
+
 import { sendResetEmail } from "../utils/sendResetEmail.js";
 import PasswordResetToken from "../models/passwordResetToken.model.js";
 import UserResource from "../resources/user.resource.js";
@@ -23,7 +23,7 @@ export const userRegister = async (req, res, next) => {
 
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return responseHandler(res, 409, "Email already exists", {});
+      return responseHandler(res, 202, "Email already exists", {});
     }
 
     const hashedPassword = await hashPassword(password);
@@ -32,7 +32,7 @@ export const userRegister = async (req, res, next) => {
 
     return responseHandler(
       res,
-      201,
+      200,
       "User registered successfully",
       new UserResource(user).exec()
     );
@@ -45,6 +45,7 @@ export const userLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await findUserByEmail(email);
+
     if (!user) {
       return responseHandler(res, 404, "User doesn't exist, please sign up.");
     }

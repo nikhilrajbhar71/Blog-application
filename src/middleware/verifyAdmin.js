@@ -9,7 +9,7 @@ const verifyAdmin = async (req, res, next) => {
     if (req.user.role !== "admin") {
       return responseHandler(
         res,
-        403,
+        401,
         "Forbidden - You Do Not Have Admin Privileges"
       );
     }

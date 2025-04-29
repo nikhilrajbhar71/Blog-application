@@ -3,7 +3,7 @@ import Resource from "resources.js";
 class SubscriptionResource extends Resource {
   toArray() {
     return {
-      id: this.id || 0,
+      id: this._id || 0,
       createdAt: this.createdAt || "",
       updatedAt: this.updatedAt || "",
       userId: this.userId || "",

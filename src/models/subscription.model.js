@@ -4,12 +4,12 @@ const subscriptionSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // The subscriber (user who subscribes)
+      ref: "User", 
       required: true,
     },
     authorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // The author (user being subscribed to)
+      ref: "User",
       required: true,
     },
   },

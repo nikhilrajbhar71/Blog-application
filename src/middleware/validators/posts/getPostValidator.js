@@ -11,7 +11,7 @@ function handleValidationErrors(req, res, next) {
 
 export const validateGetPost = [
   param("id")
-    .isInt({ gt: 0 })
+    .isString({ gt: 0 })
     .withMessage("Post ID must be a valid positive integer"),
 
   handleValidationErrors,

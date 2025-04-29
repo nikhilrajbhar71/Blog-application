@@ -4,7 +4,7 @@ import {
   createNewPost,
   deletePostById,
   fetchAllPosts,
-  findPostByPk,
+  findPostById,
   getLikesByPostId,
   getPostWithDetails,
   toggleCommentLike,
@@ -23,6 +23,7 @@ export const createPost = async (req, res, next) => {
       return responseHandler(res, 400, "Banner image is required");
     }
     const bannerImage = req.file.location;
+    console.log("image " + JSON.stringify(bannerImage));
     const post = await createNewPost({
       title,
       content,
@@ -31,6 +32,7 @@ export const createPost = async (req, res, next) => {
       categoryId,
       isPublished,
     });
+    console.log("post " + JSON.stringify(post));
 
     notifySubscribers(req.user, title, content);
 
@@ -48,9 +50,9 @@ export const createPost = async (req, res, next) => {
 export const updateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const post = await findPostByPk(id);
+    const post = await findPostById(id);
 
-    verifyPostOwnership(post, req.user);
+    verifyPostOwnership(post, req.user._id);
     await updatePostStatus(id);
 
     return responseHandler(res, 200, "Post status updated successfully", {});
@@ -61,9 +63,9 @@ export const updateStatus = async (req, res, next) => {
 
 export const deletePost = async (req, res, next) => {
   try {
-    const post = await findPostByPk(req.params.id);
+    const post = await findPostById(req.params.id);
 
-    verifyPostOwnership(post, req.user);
+    verifyPostOwnership(post, req.user._id);
 
     await deletePostById(req.params.id);
 

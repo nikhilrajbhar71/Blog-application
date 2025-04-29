@@ -5,13 +5,13 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      maxlength: 255, // Equivalent to Sequelize's `STRING(255)`
+      maxlength: 255, 
     },
     email: {
       type: String,
       required: true,
       unique: true, 
-      maxlength: 255, // Maximum length for the email field
+      maxlength: 255, 
     },
     password: {
       type: String,
@@ -20,8 +20,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["viewer", "author", "admin"], // Enum to restrict values
-      default: "viewer", // Default value if not provided
+      enum: ["viewer", "author", "admin"],
+      default: "viewer", 
       required: true,
     },
   },

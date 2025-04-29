@@ -7,7 +7,6 @@ import PostResource from "../resources/post.resource.js";
 import { getCommentsByPostId } from "./comment.service.js";
 import CommentResource from "../resources/comment.resource.js";
 import LikeResource from "../resources/like.resource.js";
-
 export const createNewPost = async ({
   title,
   content,
@@ -16,7 +15,7 @@ export const createNewPost = async ({
   categoryId,
   isPublished,
 }) => {
-  return await Post.create({
+  const post = await Post.create({
     title,
     content,
     bannerImage,
@@ -24,100 +23,70 @@ export const createNewPost = async ({
     categoryId,
     isPublished,
   });
+  return post;
 };
 
-export const findPostByPk = async (id) => {
-  const post = await Post.findByPk(id);
-  if (!post) {
-    throw new AppError(404, "Post not found");
-  }
+export const findPostById = async (id) => {
+  const post = await Post.findById(id);
+  if (!post) throw new AppError(404, "Post not found");
   return post;
 };
 
 export const updatePostStatus = async (id) => {
-  await Post.update(
-    { isPublished: Sequelize.literal("NOT isPublished") },
-    { where: { id } }
-  );
+  const post = await Post.findById(id);
+  if (!post) throw new AppError(404, "Post not found");
+
+  post.isPublished = !post.isPublished;
+  await post.save();
 };
 
 export const deletePostById = async (id) => {
-  await Post.update({ isDeleted: true }, { where: { id } });
+  await Post.findByIdAndUpdate(id, { isDeleted: true });
 };
 
-export const fetchAllPosts = async (page, limit, category, author) => {
-  page = parseInt(page) || 1;
-  limit = parseInt(limit) || 10;
-  const offset = (page - 1) * limit;
+export const fetchAllPosts = async (page = 1, limit = 10, category, author) => {
+  const filter = { isPublished: true, isDeleted: false };
+  if (category) filter.categoryId = category;
+  if (author) filter.authorId = author;
 
-  const whereCondition = {
-    isPublished: true,
-    isDeleted: false,
-  };
-
-  if (category) whereCondition.categoryId = category;
-  if (author) whereCondition.authorId = author;
-
-  const totalCount = await Post.count({ where: whereCondition });
+  const totalCount = await Post.countDocuments(filter);
   const totalPages = Math.ceil(totalCount / limit);
 
-  const posts = await Post.findAll({
-    limit,
-    offset,
-    where: whereCondition,
-    order: [["createdAt", "DESC"]],
-    include: [
-      {
-        model: Comment,
-        attributes: ["id", "comment", "userId", "createdAt"],
-      },
-      {
-        model: Like,
-        attributes: ["id", "userId", "createdAt"],
-      },
-    ],
-  });
+  const posts = await Post.find(filter)
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .sort({ createdAt: -1 })
+    .populate("categoryId", "name")
+    .populate("authorId", "name")
+    .lean();
 
-  const formattedPosts = posts.map((post) => {
-    const postJson = post.toJSON();
-    return {
-      ...postJson,
-      likesCount: postJson.Likes?.length || 0,
-      commentsCount: postJson.Comments?.length || 0,
-    };
-  });
+  const postsWithCounts = await Promise.all(
+    posts.map(async (post) => {
+      const [Likes, Comments] = await Promise.all([
+        Like.countDocuments({ postId: post._id }),
+        Comment.countDocuments({ postId: post._id }),
+      ]);
+
+      return {
+        ...post,
+        Likes,
+        Comments,
+      };
+    })
+  );
 
   return {
-    posts: PostResource.collection(formattedPosts),
+    posts: PostResource.collection(postsWithCounts),
     currentPage: page,
     totalPages,
   };
 };
 
-export const toggleCommentLike = async (commentId, userId) => {
-  const comment = await Comment.findByPk(commentId);
-  if (!comment) throw new AppError(404, "comment not found");
-
-  const alreadyLiked = await Like.findOne({ where: { commentId, userId } });
-
-  if (alreadyLiked) {
-    await Like.destroy({ where: { commentId, userId } });
-    return { liked: false };
-  }
-
-  await Like.create({ commentId, userId });
-
-  return { liked: true };
-};
-
 export const togglePostLike = async (postId, userId) => {
-  const post = await Post.findByPk(postId);
-  if (!post) throw new AppError(404, "post not found");
+  const existing = await Like.findOne({ postId, userId });
 
-  const alreadyLiked = await Like.findOne({ where: { postId, userId } });
-
-  if (alreadyLiked) {
-    await Like.destroy({ where: { postId, userId } });
+  if (existing) {
+    await existing.deleteOne();
     return { liked: false };
   }
 
@@ -125,35 +94,42 @@ export const togglePostLike = async (postId, userId) => {
   return { liked: true };
 };
 
+export const toggleCommentLike = async (commentId, userId) => {
+  const existing = await Like.findOne({ commentId, userId });
+
+  if (existing) {
+    await existing.deleteOne();
+    return { liked: false };
+  }
+
+  await Like.create({ commentId, userId });
+  return { liked: true };
+};
+
 export const verifyPostOwnership = (post, userId) => {
-  if (!post || post.authorId !== userId.id) {
+  console.log("post is " + JSON.stringify(post));
+  console.log("user is" + JSON.stringify(userId));
+  if (!post || post.authorId.toString() !== userId.toString()) {
     throw new AppError(401, "Unauthorized to perform this action");
   }
 };
 
 export const getLikesByPostId = async (postId) => {
-  return await Like.findAll({
-    where: { postId },
-  });
+  return await Like.find({ postId });
 };
-
-
-
 
 export const getPostWithDetails = async (id) => {
   const [post, comments, likes] = await Promise.all([
-    findPostByPk(id),
-    getCommentsByPostId(id),
-    getLikesByPostId(id),
+    Post.findById(id).lean(),
+    Comment.find({ postId: id }).lean(),
+    Like.find({ postId: id }).lean(),
   ]);
 
-  const formattedPost = new PostResource(post).exec();
-  const formattedComments = CommentResource.collection(comments);
-  const formattedLikes = LikeResource.collection(likes);
+  if (!post) throw new AppError(404, "Post not found");
 
   return {
-    post: formattedPost,
-    likes: formattedLikes,
-    comments: formattedComments,
+    post: new PostResource(post).exec(),
+    comments: CommentResource.collection(comments),
+    likes: LikeResource.collection(likes),
   };
 };

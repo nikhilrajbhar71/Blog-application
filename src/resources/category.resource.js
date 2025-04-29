@@ -3,7 +3,7 @@ import Resource from "resources.js";
 class CategoryResource extends Resource {
   toArray() {
     return {
-      id: this.id || 0,
+      id: this._id || 0,
       name: this.name || "",
       createdAt: this.createdAt || "",
       updatedAt: this.updatedAt || "",

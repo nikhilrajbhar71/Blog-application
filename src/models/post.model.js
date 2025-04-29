@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import User from "./user.model.js"; // Assuming you have the User model
-import Category from "./category.model.js"; // Assuming you have the Category model
+import User from "../models/user.model.js";
+import Category from "../models/category.model.js";
 
 const postSchema = new mongoose.Schema(
   {
@@ -27,21 +27,20 @@ const postSchema = new mongoose.Schema(
     },
     authorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Reference to the User model (author of the post)
+      ref: "User",
       required: true,
     },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Category", // Reference to the Category model
+      ref: "Category",
       required: true,
     },
   },
   {
-    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    timestamps: true,
   }
 );
 
-// Create the Post model
 const Post = mongoose.model("Post", postSchema);
 
 export default Post;

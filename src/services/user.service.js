@@ -26,12 +26,12 @@ export const createUser = async (name, email, password, role) => {
 };
 
 export const findUserByPk = async (id) => {
-  const user = await User.findById(id); // Using findById for Mongoose
+  const user = await User.findById(id); 
   return user;
 };
 
 export const deleteUser = async (id) => {
-  await User.findByIdAndDelete(id); // Mongoose method for deleting by ID
+  await User.findByIdAndDelete(id); 
 };
 
 export const generateResetToken = async (email, token, expiresAt) => {
@@ -48,7 +48,7 @@ export const generateResetToken = async (email, token, expiresAt) => {
 export const findResetToken = async (token) => {
   const tokenEntry = await PasswordResetToken.findOne({
     token,
-    expiresAt: { $gt: new Date() }, // MongoDB operator to check if expiresAt is greater than current date
+    expiresAt: { $gt: new Date() }, 
   });
 
   if (!tokenEntry) {

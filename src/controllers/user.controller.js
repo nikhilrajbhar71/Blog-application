@@ -22,6 +22,7 @@ export const userRegister = async (req, res, next) => {
     const { email, password, role, name } = req.body;
 
     const existingUser = await findUserByEmail(email);
+    console.log("user " + JSON.stringify(existingUser));
     if (existingUser) {
       return responseHandler(res, 202, "Email already exists", {});
     }
@@ -45,7 +46,6 @@ export const userLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await findUserByEmail(email);
-
     if (!user) {
       return responseHandler(res, 404, "User doesn't exist, please sign up.");
     }
@@ -54,7 +54,6 @@ export const userLogin = async (req, res, next) => {
     if (!isVerified) {
       return responseHandler(res, 401, "Incorrect username or password");
     }
-
     const accessToken = jwtSignHelper(user, "1h", process.env.JWT_SECRET);
     const refreshToken = jwtSignHelper(user, "7d", process.env.REFRESH_SECRET);
 

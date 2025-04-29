@@ -17,7 +17,7 @@ const verifyRefreshToken = async (req, res, next) => {
     if (!decoded) {
       throw new AppError(401, "Forbidden - Invalid Token");
     }
-    const user = await User.findByPk(decoded.userId);
+    const user = await User.findById(decoded.userId);
 
     if (!user) {
       return responseHandler(res, 404, "User not found", {});

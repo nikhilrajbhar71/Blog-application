@@ -10,13 +10,13 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true, // Ensures the email is unique across users
+      unique: true, 
       maxlength: 255, // Maximum length for the email field
     },
     password: {
       type: String,
       required: true,
-      maxlength: 255, // Equivalent to Sequelize's `STRING(255)`
+
     },
     role: {
       type: String,

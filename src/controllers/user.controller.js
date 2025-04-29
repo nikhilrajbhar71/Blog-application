@@ -27,10 +27,10 @@ export const userRegister = async (req, res, next) => {
       return responseHandler(res, 202, "Email already exists", {});
     }
 
-    const hashedPassword = await hashPassword(password);
+   
 
-    const user = await createUser(name, email, hashedPassword, role);
-
+    const user = await createUser(name, email, password, role);
+    console.log("user created" + JSON.stringify(user));
     return responseHandler(
       res,
       200,
@@ -49,8 +49,9 @@ export const userLogin = async (req, res, next) => {
     if (!user) {
       return responseHandler(res, 404, "User doesn't exist, please sign up.");
     }
-
+    console.log("user" + JSON.stringify(user.password));
     const isVerified = await bcrypt.compare(password, user.password);
+
     if (!isVerified) {
       return responseHandler(res, 401, "Incorrect username or password");
     }

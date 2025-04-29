@@ -20,7 +20,7 @@ export const createUser = async (name, email, password, role) => {
   });
 
   await user.save();
-  user.password = undefined; // Remove password from the response
+  user.password = undefined; 
 
   return user;
 };

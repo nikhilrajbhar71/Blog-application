@@ -5,8 +5,7 @@ import { Op } from "sequelize";
 import bcrypt from "bcrypt";
 
 export const findUserByEmail = async (email) => {
-  const user = await User.findOne({ email });
-  return user;
+  return await User.findOne({ where: { email } });
 };
 
 export const createUser = async (name, email, password, role) => {
@@ -20,18 +19,17 @@ export const createUser = async (name, email, password, role) => {
   });
 
   await user.save();
-  user.password = undefined; 
+  user.password = undefined;
 
   return user;
 };
 
 export const findUserByPk = async (id) => {
-  const user = await User.findById(id); 
-  return user;
+  return await User.findById(id);
 };
 
 export const deleteUser = async (id) => {
-  await User.findByIdAndDelete(id); 
+  await User.findByIdAndDelete(id);
 };
 
 export const generateResetToken = async (email, token, expiresAt) => {
@@ -48,7 +46,7 @@ export const generateResetToken = async (email, token, expiresAt) => {
 export const findResetToken = async (token) => {
   const tokenEntry = await PasswordResetToken.findOne({
     token,
-    expiresAt: { $gt: new Date() }, 
+    expiresAt: { $gt: new Date() },
   });
 
   if (!tokenEntry) {

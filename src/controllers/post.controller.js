@@ -23,7 +23,6 @@ export const createPost = async (req, res, next) => {
       return responseHandler(res, 400, "Banner image is required");
     }
     const bannerImage = req.file.location;
-    console.log("image " + JSON.stringify(bannerImage));
     const post = await createNewPost({
       title,
       content,
@@ -32,7 +31,6 @@ export const createPost = async (req, res, next) => {
       categoryId,
       isPublished,
     });
-    console.log("post " + JSON.stringify(post));
 
     notifySubscribers(req.user, title, content);
 

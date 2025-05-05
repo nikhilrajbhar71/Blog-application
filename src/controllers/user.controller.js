@@ -22,7 +22,6 @@ export const userRegister = async (req, res, next) => {
     const { email, password, role, name } = req.body;
 
     const existingUser = await findUserByEmail(email);
-    console.log("user " + JSON.stringify(existingUser));
     if (existingUser) {
       return responseHandler(res, 202, "Email already exists", {});
     }
@@ -30,7 +29,6 @@ export const userRegister = async (req, res, next) => {
    
 
     const user = await createUser(name, email, password, role);
-    console.log("user created" + JSON.stringify(user));
     return responseHandler(
       res,
       200,
@@ -49,7 +47,6 @@ export const userLogin = async (req, res, next) => {
     if (!user) {
       return responseHandler(res, 404, "User doesn't exist, please sign up.");
     }
-    console.log("user" + JSON.stringify(user.password));
     const isVerified = await bcrypt.compare(password, user.password);
 
     if (!isVerified) {
@@ -94,7 +91,6 @@ export const getUserProfile = async (req, res, next) => {
     if (!user) {
       return responseHandler(res, 404, "user not found", {});
     }
-    console.log("test " + JSON.stringify(user));
 
     return responseHandler(
       res,

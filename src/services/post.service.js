@@ -107,8 +107,7 @@ export const toggleCommentLike = async (commentId, userId) => {
 };
 
 export const verifyPostOwnership = (post, userId) => {
-  console.log("post is " + JSON.stringify(post));
-  console.log("user is" + JSON.stringify(userId));
+
   if (!post || post.authorId.toString() !== userId.toString()) {
     throw new AppError(401, "Unauthorized to perform this action");
   }

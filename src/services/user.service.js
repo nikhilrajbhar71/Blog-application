@@ -5,7 +5,7 @@ import { Op } from "sequelize";
 import bcrypt from "bcrypt";
 
 export const findUserByEmail = async (email) => {
-  return await User.findOne({ where: { email } });
+  return await User.findOne({ email });
 };
 
 export const createUser = async (name, email, password, role) => {

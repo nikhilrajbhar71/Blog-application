@@ -26,8 +26,6 @@ export const userRegister = async (req, res, next) => {
       return responseHandler(res, 202, "Email already exists", {});
     }
 
-   
-
     const user = await createUser(name, email, password, role);
     return responseHandler(
       res,

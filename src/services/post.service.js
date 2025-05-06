@@ -4,9 +4,10 @@ import Like from "../models/like.model.js";
 import Post from "../models/post.model.js";
 import AppError from "../utils/AppError.js";
 import PostResource from "../resources/post.resource.js";
-import { getCommentsByPostId } from "./comment.service.js";
 import CommentResource from "../resources/comment.resource.js";
 import LikeResource from "../resources/like.resource.js";
+import mongoose from "mongoose";
+
 export const createNewPost = async ({
   title,
   content,
@@ -48,35 +49,73 @@ export const fetchAllPosts = async (page = 1, limit = 10, category, author) => {
   const filter = { isPublished: true, isDeleted: false };
   if (category) filter.categoryId = category;
   if (author) filter.authorId = author;
+  console.log(`limit is ${limit} AND page is ${page}`);
+  const result = await Post.aggregate([
+    { $match: filter },
+    {
+      $facet: {
+        posts: [
+          { $sort: { createdAt: -1 } },
+          { $skip: parseInt((page - 1) * limit) },
+          { $limit: parseInt(limit) },
 
-  const totalCount = await Post.countDocuments(filter);
+          {
+            $lookup: {
+              from: "categories",
+              localField: "categoryId",
+              foreignField: "_id",
+              as: "category",
+            },
+          },
+
+          {
+            $lookup: {
+              from: "users",
+              localField: "authorId",
+              foreignField: "_id",
+              as: "author",
+            },
+          },
+
+          {
+            $lookup: {
+              from: "comments",
+              localField: "_id",
+              foreignField: "postId",
+              as: "comments",
+            },
+          },
+          {
+            $addFields: {
+              Comments: { $size: "$comments" },
+            },
+          },
+
+          {
+            $lookup: {
+              from: "likes",
+              localField: "_id",
+              foreignField: "postId",
+              as: "likes",
+            },
+          },
+          {
+            $addFields: {
+              Likes: { $size: "$likes" },
+            },
+          },
+        ],
+        totalCount: [{ $count: "count" }],
+      },
+    },
+  ]);
+
+  const posts = result[0].posts;
+  const totalCount = result[0].totalCount[0]?.count || 0;
   const totalPages = Math.ceil(totalCount / limit);
 
-  const posts = await Post.find(filter)
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .sort({ createdAt: -1 })
-    .populate("categoryId", "name")
-    .populate("authorId", "name")
-    .lean();
-
-  const postsWithCounts = await Promise.all(
-    posts.map(async (post) => {
-      const [Likes, Comments] = await Promise.all([
-        Like.countDocuments({ postId: post._id }),
-        Comment.countDocuments({ postId: post._id }),
-      ]);
-
-      return {
-        ...post,
-        Likes,
-        Comments,
-      };
-    })
-  );
-
   return {
-    posts: PostResource.collection(postsWithCounts),
+    posts: PostResource.collection(posts),
     currentPage: page,
     totalPages,
   };
@@ -107,7 +146,6 @@ export const toggleCommentLike = async (commentId, userId) => {
 };
 
 export const verifyPostOwnership = (post, userId) => {
-
   if (!post || post.authorId.toString() !== userId.toString()) {
     throw new AppError(401, "Unauthorized to perform this action");
   }
@@ -116,19 +154,35 @@ export const verifyPostOwnership = (post, userId) => {
 export const getLikesByPostId = async (postId) => {
   return await Like.find({ postId });
 };
-
 export const getPostWithDetails = async (id) => {
-  const [post, comments, likes] = await Promise.all([
-    Post.findById(id).lean(),
-    Comment.find({ postId: id }).lean(),
-    Like.find({ postId: id }).lean(),
+  const objectId = new mongoose.Types.ObjectId(id);
+
+  const result = await Post.aggregate([
+    { $match: { _id: objectId } },
+    {
+      $lookup: {
+        from: "comments",
+        localField: "_id",
+        foreignField: "postId",
+        as: "comments",
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "postId",
+        as: "likes",
+      },
+    },
   ]);
 
+  const post = result[0];
   if (!post) throw new AppError(404, "Post not found");
 
   return {
     post: new PostResource(post).exec(),
-    comments: CommentResource.collection(comments),
-    likes: LikeResource.collection(likes),
+    comments: CommentResource.collection(post.comments),
+    likes: LikeResource.collection(post.likes),
   };
 };

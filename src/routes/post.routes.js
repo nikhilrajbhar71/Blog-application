@@ -8,6 +8,7 @@ import {
   getPost,
   likeComment,
   likePost,
+  updatePost,
   updateStatus,
 } from "../controllers/post.controller.js";
 import authenticateUser from "../middleware/authenticateUser.js";
@@ -27,6 +28,7 @@ router.post(
   createPost
 );
 router.put("/:id/status", authenticateUser, verifyAuthor, updateStatus);
+router.put("/:id", validateGetPost, authenticateUser, verifyAuthor, updatePost);
 router.delete(
   "/:id",
   authenticateUser,

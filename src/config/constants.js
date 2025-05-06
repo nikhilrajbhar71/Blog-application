@@ -4,3 +4,5 @@ export const httpCodes = {
 };
 
 export const serverErrorCodes = [400, 401, 500, 404];
+
+export const updatableFields = ["title", "content", "categoryId"];

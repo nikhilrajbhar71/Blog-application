@@ -9,6 +9,7 @@ import {
   getPostWithDetails,
   toggleCommentLike,
   togglePostLike,
+  updatePostService,
   updatePostStatus,
   verifyPostOwnership,
 } from "../services/post.service.js";
@@ -59,6 +60,19 @@ export const updateStatus = async (req, res, next) => {
   }
 };
 
+export const updatePost = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const post = await findPostById(id);
+
+    verifyPostOwnership(post, req.user._id);
+    await updatePostService(req.body, id);
+
+    return responseHandler(res, 200, "Post status updated successfully", {});
+  } catch (error) {
+    next(error);
+  }
+};
 export const deletePost = async (req, res, next) => {
   try {
     const post = await findPostById(req.params.id);

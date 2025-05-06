@@ -7,6 +7,7 @@ import PostResource from "../resources/post.resource.js";
 import CommentResource from "../resources/comment.resource.js";
 import LikeResource from "../resources/like.resource.js";
 import mongoose from "mongoose";
+import { updatableFields } from "../config/constants.js";
 
 export const createNewPost = async ({
   title,
@@ -185,4 +186,26 @@ export const getPostWithDetails = async (id) => {
     comments: CommentResource.collection(post.comments),
     likes: LikeResource.collection(post.likes),
   };
+};
+
+export const updatePostService = async (reqBody, id) => {
+  const updateData = {};
+  console.log("body " + JSON.stringify(reqBody));
+  updatableFields.forEach((field) => {
+    if (reqBody[field] !== undefined) {
+      updateData[field] = reqBody[field];
+    }
+  });
+
+  if (Object.keys(updateData).length === 0) {
+    throw new AppError(400, "No valid fields provided for update");
+  }
+
+  const updatedPost = await Post.findByIdAndUpdate(id, updateData, {
+    new: true,
+  });
+
+  if (!updatedPost) {
+    throw new AppError(404, "Post not found");
+  }
 };

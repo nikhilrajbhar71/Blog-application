@@ -4,7 +4,7 @@ import {
   createNewPost,
   deletePostById,
   fetchAllPosts,
-  findPostByPk,
+  findPostById,
   getLikesByPostId,
   getPostWithDetails,
   toggleCommentLike,
@@ -48,9 +48,9 @@ export const createPost = async (req, res, next) => {
 export const updateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const post = await findPostByPk(id);
+    const post = await findPostById(id);
 
-    verifyPostOwnership(post, req.user);
+    verifyPostOwnership(post, req.user._id);
     await updatePostStatus(id);
 
     return responseHandler(res, 200, "Post status updated successfully", {});
@@ -61,9 +61,9 @@ export const updateStatus = async (req, res, next) => {
 
 export const deletePost = async (req, res, next) => {
   try {
-    const post = await findPostByPk(req.params.id);
+    const post = await findPostById(req.params.id);
 
-    verifyPostOwnership(post, req.user);
+    verifyPostOwnership(post, req.user._id);
 
     await deletePostById(req.params.id);
 

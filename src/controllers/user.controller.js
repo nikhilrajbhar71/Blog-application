@@ -26,10 +26,7 @@ export const userRegister = async (req, res, next) => {
       return responseHandler(res, 202, "Email already exists", {});
     }
 
-    const hashedPassword = await hashPassword(password);
-
-    const user = await createUser(name, email, hashedPassword, role);
-
+    const user = await createUser(name, email, password, role);
     return responseHandler(
       res,
       200,
@@ -45,16 +42,14 @@ export const userLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await findUserByEmail(email);
-
     if (!user) {
       return responseHandler(res, 404, "User doesn't exist, please sign up.");
     }
-
     const isVerified = await bcrypt.compare(password, user.password);
+
     if (!isVerified) {
       return responseHandler(res, 401, "Incorrect username or password");
     }
-
     const accessToken = jwtSignHelper(user, "1h", process.env.JWT_SECRET);
     const refreshToken = jwtSignHelper(user, "7d", process.env.REFRESH_SECRET);
 
@@ -94,7 +89,6 @@ export const getUserProfile = async (req, res, next) => {
     if (!user) {
       return responseHandler(res, 404, "user not found", {});
     }
-    console.log("test " + JSON.stringify(user));
 
     return responseHandler(
       res,

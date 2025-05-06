@@ -1,19 +1,14 @@
+import Subscription from "../models/subscription.model.js";
 import User from "../models/user.model.js";
 import emailSender from "./emailSender.js";
 
 export const notifySubscribers = async (user, title, content) => {
-  const subscribers = await User.findAll({
-    where: { id: user.id },
-    include: [
-      {
-        model: User,
-        as: "Subscribers",
-        attributes: ["id", "name", "email"],
-      },
-    ],
-  });
+  // Find all subscribers to the given author (user)
+  const subscriptions = await Subscription.find({
+    authorId: user._id,
+  }).populate("userId", "name email");
 
-  subscribers[0].Subscribers.forEach((subscriber) => {
+  subscriptions.forEach(({ userId: subscriber }) => {
     try {
       emailSender(
         subscriber.email,

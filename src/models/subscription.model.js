@@ -1,14 +1,16 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../config/db.js";
-import User from "../models/user.model.js";
+import mongoose from "mongoose";
 
-const Subscription = sequelize.define(
-  "Subscription",
+const subscriptionSchema = new mongoose.Schema(
   {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", 
+      required: true,
+    },
+    authorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
   },
   {
@@ -16,21 +18,6 @@ const Subscription = sequelize.define(
   }
 );
 
-// Relationships
-User.belongsToMany(User, {
-  as: "Authors",
-  through: Subscription,
-  foreignKey: "userId",
-  otherKey: "authorId",
-  onDelete: "CASCADE",
-});
-
-User.belongsToMany(User, {
-  as: "Subscribers",
-  through: Subscription,
-  foreignKey: "authorId",
-  otherKey: "userId",
-  onDelete: "CASCADE",
-});
+const Subscription = mongoose.model("Subscription", subscriptionSchema);
 
 export default Subscription;

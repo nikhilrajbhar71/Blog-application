@@ -3,7 +3,7 @@ import Resource from "resources.js";
 class LikeResource extends Resource {
   toArray() {
     return {
-      id: this.id || 0,
+      id: this._id || 0,
       userId: this.userId || 0,
       createdAt: this.createdAt || "",
     };

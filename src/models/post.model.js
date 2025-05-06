@@ -1,35 +1,39 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../config/db.js";
+import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import Category from "../models/category.model.js";
 
-const Post = sequelize.define(
-  "Post",
+const postSchema = new mongoose.Schema(
   {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
     title: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
+      type: String,
+      required: true,
+      maxlength: 255,
     },
     content: {
-      type: DataTypes.TEXT,
-      allowNull: false,
+      type: String,
+      required: true,
     },
     bannerImage: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
+      type: String,
+      required: true,
     },
     isPublished: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
+      type: Boolean,
+      default: false,
     },
     isDeleted: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
+      type: Boolean,
+      default: false,
+    },
+    authorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
     },
   },
   {
@@ -37,10 +41,6 @@ const Post = sequelize.define(
   }
 );
 
-Post.belongsTo(User, { foreignKey: "authorId", onDelete: "SET NULL" });
-User.hasMany(Post, { foreignKey: "authorId" });
-
-Post.belongsTo(Category, { foreignKey: "categoryId", onDelete: "SET NULL" });
-Category.hasMany(Post, { foreignKey: "categoryId" });
+const Post = mongoose.model("Post", postSchema);
 
 export default Post;

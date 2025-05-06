@@ -1,34 +1,29 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../config/db.js";
+import mongoose from "mongoose";
 
-const PasswordResetToken = sequelize.define(
-  "PasswordResetToken",
+const passwordResetTokenSchema = new mongoose.Schema(
   {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
     email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        isEmail: true,
-      },
+      type: String,
+      required: true,
+      
     },
     token: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: String,
+      required: true,
     },
     expiresAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
+      type: Date,
+      required: true,
     },
   },
   {
-    timestamps: true,
-    updatedAt: false, // You can enable this if needed
+    timestamps: { createdAt: true, updatedAt: false },
   }
+);
+
+const PasswordResetToken = mongoose.model(
+  "PasswordResetToken",
+  passwordResetTokenSchema
 );
 
 export default PasswordResetToken;

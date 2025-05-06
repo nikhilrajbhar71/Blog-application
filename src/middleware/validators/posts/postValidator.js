@@ -25,7 +25,7 @@ export const validatePostCreation = [
     .withMessage("Content must be at least 10 characters long"),
 
   body("categoryId")
-    .isInt({ gt: 0 })
+    .isString({ gt: 0 })
     .withMessage("Category ID must be a valid positive integer"),
 
   body("is_published")

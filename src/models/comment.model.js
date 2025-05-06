@@ -1,19 +1,24 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../config/db.js";
-import User from "../models/user.model.js";
-import Post from "../models/post.model.js";
+import mongoose from "mongoose";
 
-const Comment = sequelize.define(
-  "Comment",
+const commentSchema = new mongoose.Schema(
   {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
     comment: {
-      type: DataTypes.TEXT,
-      allowNull: false,
+      type: String,
+      required: true,
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    postId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
+    },
+    parentCommentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment",
+      default: null,
     },
   },
   {
@@ -21,15 +26,6 @@ const Comment = sequelize.define(
   }
 );
 
-Comment.belongsTo(User, { foreignKey: "userId", onDelete: "CASCADE" });
-User.hasMany(Comment, { foreignKey: "userId" });
-
-Comment.belongsTo(Post, { foreignKey: "postId", onDelete: "CASCADE" });
-Post.hasMany(Comment, { foreignKey: "postId" });
-
-Comment.belongsTo(Comment, {
-  foreignKey: "parentCommentId",
-  onDelete: "CASCADE",
-});
+const Comment = mongoose.model("Comment", commentSchema);
 
 export default Comment;

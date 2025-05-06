@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import responseHandler from "../utils/responseHandler.js";
+import { findUserByPk } from "../services/user.service.js";
 
 const authenticateUser = async (req, res, next) => {
   try {
@@ -19,7 +20,7 @@ const authenticateUser = async (req, res, next) => {
     if (!decoded) {
       throw new AppError(401, "Forbidden - Invalid Token");
     }
-    const user = await User.findByPk(decoded.userId);
+    const user = await findUserByPk(decoded.userId);
 
     if (!user) {
       return responseHandler(res, 404, "user not found", {});

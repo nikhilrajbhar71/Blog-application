@@ -5,51 +5,54 @@ import { Op } from "sequelize";
 import bcrypt from "bcrypt";
 
 export const findUserByEmail = async (email) => {
-  const user = await User.findOne({ where: { email } });
-
-  return user;
+  return await User.findOne({ email });
 };
+
 export const createUser = async (name, email, password, role) => {
-  const user = await User.create({
+  const hashedPassword = await hashPassword(password);
+
+  const user = new User({
     name,
     email,
-    password,
+    password: hashedPassword,
     role,
   });
-  delete user.dataValues.password;
+
+  await user.save();
+  user.password = undefined;
+
   return user;
 };
 
 export const findUserByPk = async (id) => {
-  const user = await User.findByPk(id);
-
-  return user;
+  return await User.findById(id);
 };
 
 export const deleteUser = async (id) => {
-  await User.destroy({
-    where: {
-      id,
-    },
-  });
+  await User.findByIdAndDelete(id);
 };
 
 export const generateResetToken = async (email, token, expiresAt) => {
-  const newToken = await PasswordResetToken.create({ email, token, expiresAt });
+  const newToken = new PasswordResetToken({
+    email,
+    token,
+    expiresAt,
+  });
 
+  await newToken.save();
   return newToken;
 };
 
 export const findResetToken = async (token) => {
   const tokenEntry = await PasswordResetToken.findOne({
-    where: {
-      token,
-      expiresAt: { [Op.gt]: new Date() },
-    },
+    token,
+    expiresAt: { $gt: new Date() },
   });
+
   if (!tokenEntry) {
     throw new AppError(401, "Invalid or expired token");
   }
+
   return tokenEntry;
 };
 

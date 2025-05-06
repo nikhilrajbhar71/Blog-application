@@ -8,7 +8,7 @@ import {
   getRepliesByParentId,
   verifyCommentOwnerShip,
 } from "../services/comment.service.js";
-import { findPostByPk } from "../services/post.service.js";
+import { findPostById } from "../services/post.service.js";
 
 import responseHandler from "../utils/responseHandler.js";
 
@@ -17,7 +17,7 @@ export const comment = async (req, res, next) => {
     const postId = req.params.id;
     const userId = req.user.id;
     const { comment } = req.body;
-    await findPostByPk(postId);
+    await findPostById(postId);
     const newComment = await createComment(postId, comment, userId);
 
     return responseHandler(res, 200, "Comment added successfully", {

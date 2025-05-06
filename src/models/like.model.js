@@ -1,28 +1,21 @@
-import { DataTypes } from "sequelize";
-import { sequelize } from "../config/db.js";
-import User from "./user.model.js";
-import Post from "./post.model.js";
-import Comment from "./comment.model.js";
+import mongoose from "mongoose";
 
-const Like = sequelize.define(
-  "Like",
+const likeSchema = new mongoose.Schema(
   {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
     userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     postId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
+      required: false,
     },
     commentId: {
-      type: DataTypes.INTEGER,
-      allowNull: true, 
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment",
+      required: false,
     },
   },
   {
@@ -30,14 +23,6 @@ const Like = sequelize.define(
   }
 );
 
-
-User.hasMany(Like, { foreignKey: "userId", onDelete: "CASCADE" });
-Like.belongsTo(User, { foreignKey: "userId" });
-
-Post.hasMany(Like, { foreignKey: "postId", onDelete: "CASCADE" });
-Like.belongsTo(Post, { foreignKey: "postId" });
-
-Comment.hasMany(Like, { foreignKey: "commentId", onDelete: "CASCADE" });
-Like.belongsTo(Comment, { foreignKey: "commentId" });
+const Like = mongoose.model("Like", likeSchema);
 
 export default Like;

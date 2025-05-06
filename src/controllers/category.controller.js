@@ -40,7 +40,6 @@ export const getAllCategories = async (req, res, next) => {
 export const deleteCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
-
     await deleteCategoryById(id);
 
     return responseHandler(res, 200, "Category deleted successfully", {});

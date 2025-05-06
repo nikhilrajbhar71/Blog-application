@@ -7,7 +7,7 @@ export const sendResetEmail = async (email, token) => {
     emailSender(
       email,
       `Reset Password`,
-      `Here is you resent link ${resetLink}
+      `Here is your reset link ${resetLink}
         `
     );
   } catch (err) {

@@ -19,7 +19,7 @@ export const getPaginatedCategories = async (page, limit) => {
   const skip = (page - 1) * limit;
 
   const categories = await Category.find()
-    .sort({ createdAt: -1 }) 
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
 
@@ -27,5 +27,9 @@ export const getPaginatedCategories = async (page, limit) => {
 };
 
 export const deleteCategoryById = async (id) => {
-  return await Category.findByIdAndDelete(id);
+  const category =await Category.findById(id);
+  if (!category) {
+    throw new AppError(404, "Category doesn't exist");
+  }
+  await Category.findByIdAndDelete(id);
 };

@@ -8,6 +8,13 @@ export const findUserByEmail = async (email) => {
   return await User.findOne({ email });
 };
 
+export const CheckIfUserExists = async (email) => {
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new AppError(404, "User doesn't exist");
+  }
+};
+
 export const createUser = async (name, email, password, role) => {
   const hashedPassword = await hashPassword(password);
 

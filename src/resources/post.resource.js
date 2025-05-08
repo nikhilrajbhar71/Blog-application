@@ -7,6 +7,7 @@ class PostResource extends Resource {
       title: this.title || "",
       content: this.content || "",
       categoryId: this.categoryId || "",
+      bannerImage: this.bannerImage || "",
       authorId: this.authorId || "",
       createdAt: this.createdAt || "",
       updatedAt: this.updatedAt || "",

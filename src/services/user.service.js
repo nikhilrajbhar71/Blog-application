@@ -9,6 +9,13 @@ export const findUserByEmail = async (email) => {
 
   return user;
 };
+
+export const checkIfUserExists = async (email) => {
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    throw new AppError(404, "user not found");
+  }
+};
 export const createUser = async (name, email, password, role) => {
   const user = await User.create({
     name,

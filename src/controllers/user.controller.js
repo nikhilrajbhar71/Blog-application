@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import responseHandler from "../utils/responseHandler.js";
 import { jwtSignHelper } from "../utils/jwtSignHelper.js";
 import {
+  checkIfUserExists,
   createUser,
   deleteUser,
   findResetToken,
@@ -120,7 +121,7 @@ export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    await findUserByEmail(email);
+    await checkIfUserExists(email);
 
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 3600000);

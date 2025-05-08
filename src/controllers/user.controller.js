@@ -129,7 +129,7 @@ export const forgotPassword = async (req, res, next) => {
 
     await sendResetEmail(email, token);
 
-    responseHandler(res, 401, "created reset token", {});
+    responseHandler(res, 200, "created reset token", {});
   } catch (error) {
     next(error);
   }
